@@ -1,0 +1,10 @@
+External Trigger Test
+<Step Name>	Comp	Limits.Low	Limits.High
+Trigger Clear	"EQ"	0	
+Measure DB9_8 at Trigclear	"GELE"	-0.2	0.2
+Trigger Set	"EQ"	1	
+Measure DB9_8 at Trigset	"GELE"	4.9	5.5
+ReadACRMSChanValues	"LE"	0.1	
+
+
+End Limits

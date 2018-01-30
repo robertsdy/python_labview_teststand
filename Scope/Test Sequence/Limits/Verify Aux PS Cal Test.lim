@@ -1,0 +1,7 @@
+Verify Aux PS Cal Test
+<Step Name>	Comp	Limits.Low	Limits.High
+Verify Aux PS Cal at 0V	"GELE"	-0.1	0.1
+Verify Aux PS Cal at +2.5V	"GELE"	2.51	2.56
+Verify Aux PS Cal at 5V	"GELE"	4.95	5.05
+
+End Limits

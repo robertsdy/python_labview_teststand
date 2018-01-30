@@ -1,0 +1,21 @@
+OHMS Verification
+<Step Name>	Comp	Limits.High	Limits.Low
+(8.1) Verify 0 Ohms 40 Ohms scale	"GELE"	0.3	-0.3
+(8.2) Verify 0 Ohms 400 Ohms scale	"GELE"	1.85	-1.85
+(8.3) Verify 0 Ohms 4k Ohms scale	"GELE"	14.4	-14.4
+(8.4) Verify 0 Ohms 40k Ohms scale	"GELE"	165	-165
+(8.5) Verify 0 Ohms 400k Ohms scale	"GELE"	1600	-1600
+(8.6) Verify 0 Ohms 4Meg Ohms scale	"GELE"	16500	-16500
+(8.7) Verify 20 Ohms 40 Ohms scale	"GELE"	20.28	19.65
+(8.8) Verify 200 Ohms 400 Ohms scale	"GELE"	203	197
+(8.9) Verify 2k Ohms 4k Ohms scale	"GELE"	2028	1971
+(8.10) Verify 20k Ohms 40k Ohms scale	"GELE"	20280	19710
+(8.11) Verify 200k Ohms 400k Ohms scale	"GELE"	202800	197100
+(8.12) Verify 2Meg Ohms 4Meg Ohms scale	"GELE"	2028000	1971000
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

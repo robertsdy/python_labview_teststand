@@ -1,0 +1,11 @@
+AC Response Tests
+<Step Name>	Comp	Limits.Low
+(7.1) AC Response Test on Ch1	"EQ"	0
+(7.2) AC Response Test on Ch2	"EQ"	0
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

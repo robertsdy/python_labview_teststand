@@ -1,0 +1,51 @@
+	SetReference 	"88"			; set the comparator threshold to 3.57v dec 88 hex 58
+	;SetFpgaRegister "851" "80"		; Turns On VFET Supply
+	SelectAllMuxA "1" "0"
+	SelectAllMuxB "1" "0"
+	SelectAllMuxA "2" "0"
+	SelectAllMuxB "2" "0"
+
+	;------------ ASIC 1 PIN 9  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "01" 			; THIS Register controls OC on Pin 9
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"1" "1"		; check bit 1 for over current status
+	SetFpgaregister "89F" "00" 			; Turn off OC
+
+	;------------ ASIC 1 PIN 15  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "04" 			; THIS Register controls OCD on Pin 15
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"1" "1"		; check bit 1 for over current status
+	SetFpgaregister "89F" "00" 			; Turn off OC	
+;;TestLabel "Cooling Down...please be patient..."
+;pause "16000"
+
+	
+	;------------ PART 1b; OVER VOLTAGE TEST2 microsecond MODE Description -------------
+	; SET TESTER TO 2.5 AMPS
+	; SET THRESHOLD TO low VOLTS
+	; TURN ON OC DRIVERS ONE AT TIME AND CHECK
+	; THAT OVER VOLTAGE FLAG GETS SET. Register 0x850 Bit 0
+	;-----------------------------------------------------------------------------------
+
+	SetReference 	"03"				; Set the comparator threshold low so if will indicate
+							; that voltage didn't go low enough
+									
+	;------------ ASIC 1 PIN 9  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"0" "0"		; check bit 0 for over voltage status
+	SetFpgaregister "89F" "01" 			; THIS Register controls OC on Pin 9
+	pause "50"							; TURN ON
+	CheckFpgaRegister "850"	"0" "1"		; check bit 0 for over volatge status
+	SetFpgaregister "89F" "00" 			; Turn off OC
+
+	;------------ ASIC 1 PIN 15  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"0" "0"		; check bit 0 for over volatge status
+	SetFpgaregister "89F" "04" 			; THIS Register controls OCD on Pin 15
+	pause "50"							; TURN ON
+	CheckFpgaRegister "850"	"0" "1"		; check bit 0 for over voltage status
+	SetFpgaregister "89F" "00" 			; Turn off OC

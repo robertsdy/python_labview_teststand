@@ -1,0 +1,106 @@
+[DEF, %OBJROOT]
+PersistedBreakpointArray = Objs
+PersistedBreakpoint = Obj
+PersistedWatchpointArray = Objs
+PersistedWatchpoint = Obj
+
+[PersistedBreakpointArray]
+%HI = [0]
+
+[DEF, PersistedBreakpointArray]
+%[0] = "TYPE, PersistedBreakpoint"
+%NAME = ""
+
+[PersistedBreakpointArray[0]]
+Path = "C:\\Func Jobs\\Snapon\\ModisEdge\\Scanner\\Test Sequence\\ModisEdgeScanner.seq"
+SequenceName = "Measure Power Supply Values"
+StepName = "Measure Power Supplies"
+StepId = "ID#:61Q+vBqGo0iJZaKCUdMWxB"
+
+[%TYPES]
+PersistedBreakpoint = "PersistedBreakpoint"
+PersistedWatchpoint = "PersistedWatchpoint"
+
+[DEF, PersistedBreakpoint]
+%LOCATION = "StdTypes"
+Path = Str
+SequenceName = Str
+Group = Num
+StepName = Str
+StepIndex = Num
+StepId = Str
+IsEnabled = Bool
+PassCount = Num
+Condition = Str
+%ROOT_TYPE = True
+
+[PersistedBreakpoint]
+SequenceName = "MainSequence"
+Group = 1
+IsEnabled = True
+%TIMESTAMP = 1449192462
+%VERSION = "14.0.0.274"
+%TYPELASTMOD = "14.0.1.103"
+%MINPRODVER = "14.0.0.0"
+%TYPE_FLG = 33554436
+
+[__Header__]
+ProductName = "TestStand"
+ProductVersion = 14.0.0.274
+CompatibleProdVersion = 14.0.0.0
+Version = 773
+Type = "TEPersisted"
+Path = ""
+ProductVersionString = "2014 SP1 (14.0.1.103)"
+Description = ""
+CharEncoding = ""
+
+[PersistedWatchpointArray]
+%HI = [4]
+
+[DEF, PersistedWatchpointArray]
+%[0] = "TYPE, PersistedWatchpoint"
+%[1] = "TYPE, PersistedWatchpoint"
+%[2] = "TYPE, PersistedWatchpoint"
+%[3] = "TYPE, PersistedWatchpoint"
+%[4] = "TYPE, PersistedWatchpoint"
+%NAME = ""
+
+[PersistedWatchpointArray[0]]
+Expression = "FileGlobals.Array_Of_Script_Results[FileGlobals.LoopCount].RValue"
+ClientFilePath = "C:\\Func Jobs\\SnapOn\\modisEdge\\Scanner\\Test Sequence\\ModisEdgeScanner-ResultsReport.seq"
+
+[PersistedWatchpointArray[1]]
+Expression = "Mid(Locals.ConnectToScannerUnit_retval,Find(Locals.ConnectToScannerUnit_retval,\"retval\",0, True, False),10) "
+ClientFilePath = "C:\\Func Jobs\\Snapon\\ModisEdge\\Scanner\\Test Sequence\\ModisEdgeScanner.seq"
+
+[PersistedWatchpointArray[2]]
+Expression = "Locals.ResultList"
+ClientFilePath = "C:\\Func Jobs\\Snapon\\ModisEdge\\Scanner\\Test Sequence\\ModisEdgeScanner.seq"
+
+[PersistedWatchpointArray[3]]
+Expression = "RunState.ThisContext.Locals.ResultList[0].Measurement[\"VBAT_FUSED\"]"
+ClientFilePath = "C:\\Func Jobs\\Snapon\\ModisEdge\\Scanner\\Test Sequence\\ModisEdgeScanner.seq"
+
+[PersistedWatchpointArray[4]]
+Expression = "Locals.ResultList[0].Measurement[\"+36V_VFET\"]"
+ClientFilePath = "C:\\Func Jobs\\Snapon\\ModisEdge\\Scanner\\Test Sequence\\ModisEdgeScanner.seq"
+
+[DEF, PersistedWatchpoint]
+%LOCATION = "StdTypes"
+Expression = Str
+BreakpointType = Num
+ClientFilePath = Str
+SequenceFilePath = Str
+SequenceName = Str
+NumericFormat = Str
+UseContextFromScope = Bool
+%ROOT_TYPE = True
+
+[PersistedWatchpoint]
+%TIMESTAMP = 1449192462
+%VERSION = "14.0.0.274"
+%TYPELASTMOD = "14.0.1.103"
+%MINPRODVER = "14.0.0.0"
+%TYPE_FLG = 33554436
+

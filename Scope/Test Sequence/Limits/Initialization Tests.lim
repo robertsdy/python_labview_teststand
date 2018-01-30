@@ -1,0 +1,13 @@
+Initialization Tests
+<Step Name>	Comp	Limits.High	Limits.Low	Limits.String
+Initialize Calibration Table - MEScope_CalStructInit	"GELE"	0	0	
+1.0 Get DSP Version	"IgnoreCase"			"7.71"
+1.1 Get Firmware Version	"EQ"		28	
+1.2 Test Silo Memory	"EQ"		0	
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

@@ -1,0 +1,1383 @@
+;*************************************************************************
+; GEP2016_PinDriver_MISC                                                 
+; Script for testing ASIC and pin driver hardware                        		
+
+;Purpose: 
+; This document describes methods to test the MODIS Edge (G16) scanner circuitry. 
+; The tests must be completed in sequential order to ensure the correct registers are set. 
+; Registers are only set or cleared when noted; otherwise the previous register settings follow onto the next step. 
+; The “on board” ADC needs to be calibrated and verified. This document must be used with the ScannerDiagProDLL, 
+; API Specification, and test script files to develop the LabView test software. 
+; The FPGA register and ASIC register documents can be used as additional references.
+
+;Note - Equivalent Product Names: MODIS Edge, GEP 2016, G16
+
+;Equipment:
+; Host PC, Barcode Reader, Printer, Mouse, Keyboard, and Monitor. 
+; MODIS Edge (G16) drivers, ScannerDiagProDLL.dll
+; UUT Power Supply 0v – 40v.
+; 0, 10, 20 +/- .25% or better Voltage References
+; DMM – 4 ½ digit minimum. (-5v to 40v  range)
+; Test Micro SD Card (Scanner Folder with minimum Rev 1.6 G16Test.xpf 
+; WiFi Access Point
+; 150ma constant current source
+; 440ma resistive load at 
+; 1.7A constant current source
+; 2.5A constant current source
+
+;Specifications:	
+
+;1	Power the Host Test PC setup with the appropriate hardware stimulus and test software.
+
+;2	Install a uSD card with G16Test into the connector on the MODIS Edge PCBA..
+
+;3	Power up the MODIS EDGE.
+;3.1	Apply 15v power via J5000. Pin 16 is Vbat and Pins 4 and 5 are ground. 
+;3.2	Connect the USB cable from the HOST PC to the MODIS EDGE Unit Under Test (UUT).
+
+;4	-----------------------Measure Power supplies: 
+;4.1	Measure the voltage at FUSED VBAT. Verify its 14.8V +/- .4v
+;4.2	Measure the voltage a +5V. Verify its 5.0 +/- .2v.
+;4.3	Measure the voltage at +3.3V. Verify its 3.327V +/- .15v
+;4.4	Measure the voltage at J5000.23. Verify its 5V +/- .25v
+;4.5	Measure the voltage at +3.3V_ASIC. Verify its 3.3V +/- .1v
+;4.6	Measure the voltage at TP2 +2.5V. Verify its 2.5V +/- .13v
+;4.7	Measure the voltage at +1.8V. Verify its 1.8V +/- .09v
+;4.8	Measure the voltage at +1.3V. Verify its 1.3V reads +/- .065
+;4.9	Measure the voltage at +1.2V. Verify its 1.2V reads 1.1 to 1.26v
+;4.10	Measure the voltage at +36V_VFET. Verify its 36V reads 33 to 37v. (FET controlled).
+;4.11	Measure the voltage at VGH. Verify its 16V +/- .48v.
+;4.12	Measure the voltage at VGL. Verify its -7V +/- .21v.
+;4.13	Measure the voltage at AVDD. Verify its 10.4V +/- .32v.
+;4.14	Measure the voltage at Vcom. Verify its 4.48V +/- .15v.
+
+;5	---------------------ConnectToScannerUnit
+;5.1	Verify MODIS Edge is connected. (Link Status in Green LED indicator in SDP GUI).
+
+;6	---------------------GetScannerDeviceType
+;6.1	Identifies what unit you are connected to. MODIS Edge is 7.
+
+;7	---------------------Serial Number/Device ID Sequence
+;7.1	Bar-code scan the serial number off the UUT sticker.
+;7.1.1	Example serial number: 025GFA501000
+;7.2	Call SetElectronicId (Serial Number string from above, Date of Manufacture string)
+
+;8-----------------------Beeper Test ----------------------------
+Beep
+Beep
+PromptUserPassFail "Verify that Beeper beeped" 
+
+;9 -----------------------LED Test-------------------------------
+SetDebugLEDs "1"
+PromptUserPassFail "Verify the 2 LEDs are on near uSD connector."
+SetDebugLEDs "0"
+
+;10	---------------------A/D Calibration
+;10.1	CF_CalStruct_Init ()
+;10.2	CF_CalStruct_SetStrings - Add Mfg. data and Station ID strings.
+;10.2.1	Date of Calibration
+;10.2.2	Manufacturer: NeoTech (settable from external ini)
+;10.3	Apply 0v to J5000.1
+;10.4	Set ASIC 1 to have pin 1 of the Switch Matrix 1A on.	also referred to as SelectMuxA "1" "1" "1"
+;10.5	Set ASIC 1 to have pin 1 of the Switch Matrix 1B on. 	also referred to as SelectMuxB "1" "1" "1"
+;10.6	Set ASIC 2 to have pin 1 of the Switch Matrix 1A on. 	also referred to as SelectMuxA "2" "1" "1"
+;10.7	Set ASIC 2 to have pin 1 of the Switch Matrix 1B on. 	also referred to as SelectMuxB "2" "1" "1"
+;10.8	CF_CalibrateADC (0 V)
+;10.9	Apply 20v ref to J5000.1
+;10.10	CF_CalibrateADC (20 V)
+;10.11	CF_ValidateCalibrationData
+;10.11.1 Verify Data is good.
+;10.12	CF_CalStruct_Write – to save the data. (Cleanup)
+;10.13	Disconnect Voltage Reference from UUT.
+
+
+------------------------------ Pin Driver Complete Test ----------------------------------
+; INITIALIZE
+
+SetG15PullUpVbat "0" "0"	; set to 5 v pullup
+SetG15PullUp "A"	"0"
+SetG15PullUp "B"	"0"
+SetG15PullDown "A"	"0"
+SetG15Pulldown "B"	"0"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetG15PullUp "C"	"0"
+SetG15PullUp "D"	"0"
+SetG15PullDown "C"	"0"
+SetG15PullDown "D"	"0"
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+SelectAllPins "0"
+ResetAsicRegister "1" "ALL"				; clear fault and status bits
+ResetAsicRegister "2" "ALL"				; clear fault and status bits
+SetFpgaregister "129" "0"				; reset fpga
+SetFpgaregister "8AD" "1"				;Turn On Vfet suplly
+
+;--------------------------CHECK System MEMORY-------------------------------
+CheckSystemMemory	; checks RAM - DDR on GEP2013
+
+;------------------------- Software Verification ----------------------------
+CheckTestAppVersion	"1.6"
+CheckFPGAVersion	"2.2"
+CheckIPLVersion		"0.5"
+CheckSPL1Version	"0.5"
+
+;------------------ Sets Real time clock to PC Clock ---------------------------
+SetRealtimeClock
+
+; ---------------------   ADC VEHICLE VBAT check ----------------------
+CheckCFAdc	"VBAT" "14.5" "15.6"		:Test Box supply ADC measures 15.3v
+;Connect the 10v reference to J5001.1
+CheckCFAdc "PVA_Volts" "9.7" "10.3"		;Measures Internal Battery Voltage at ADC 10ref
+
+;---------------------------- 20 VOLT CAL CHECK --------------------------------
+;Connect the 20V refernece volatge to J5000.1
+SelectMuxA "1" "1" "1"
+SelectMuxB "1" "1" "1"
+SelectMuxA "2" "1" "1"
+SelectMuxB "2" "1" "1"
+CheckCFAdc	"PD1" "19.5" "20.5"			;ADC +/-3% .6v.
+CheckCFAdc	"PD2" "19.5" "20.5"
+CheckCFAdc	"PD3" "19.5" "20.5"
+CheckCFAdc	"PD4" "19.5" "20.5"
+CheckFpgaRegister "8ae"	"0" "1"			; VFET PWM is running
+SelectMuxA "1" "1" "0"
+SelectMuxB "1" "1" "0"
+SelectMuxA "2" "1" "0"
+SelectMuxB "2" "1" "0"
+;Disconnect the 20V Reference from UUT 
+
+;-------------------------------------------------------------------------------
+
+;------------------------------- Start Pin Driver test for ASIC 1 -------------------------
+
+SetReference	"128"
+SetBaud		"1"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+
+; check 5 volt supply 330pu 
+SetG15PullUp "A"	"1"
+SetG15PullUp "B"	"1"
+CheckCFAdc	"PD1" "4.5" "5.0"
+CheckCFAdc	"PD2" "4.5" "5.0"
+
+; 330pu 3.92Kpd
+SetG15PullDown "A"	"3"
+SetG15PullDown "B"	"3"
+CheckCFAdc	"PD1" "4.1" "4.55"
+CheckCFAdc	"PD2" "4.1" "4.55"
+
+; 3.9Kpu 3.9Kpd
+SetG15PullUp "A"	"7"
+SetG15PullUp "B"	"7"
+CheckCFAdc	"PD1" "2.3" "2.6"
+CheckCFAdc	"PD2" "2.3" "2.6"
+
+; 330pu 10Kpd
+SetG15PullUp "A"	"1"
+SetG15PullUp "B"	"1"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "4.35" "4.85"
+CheckCFAdc	"PD2" "4.35" "4.85"
+
+; 510pu 3.92Kpd
+SetG15PullUp "A"	"2"
+SetG15PullUp "B"	"2"
+SetG15PullDown "A"	"3"
+SetG15PullDown "B"	"3"
+CheckCFAdc	"PD1" "3.95" "4.45"
+CheckCFAdc	"PD2" "3.95" "4.45"
+
+; 510pu 10Kpd
+SetG15PullUp "A"	"2"
+SetG15PullUp "B"	"2"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "4.3" "4.8"
+CheckCFAdc	"PD2" "4.3" "4.8"
+
+; 1kpu 10Kpd
+SetG15PullUp "A"	"3"
+SetG15PullUp "B"	"3"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	 "PD1" "4.1" "4.6"
+CheckCFAdc	 "PD2" "4.1" "4.6"
+
+; 2.2kpu 10Kpd
+SetG15PullUp "A"	"4"
+SetG15PullUp "B"	"4"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "3.7" "4.2"
+CheckCFAdc	"PD2" "3.7" "4.2"
+
+; 2.7kpu 10Kpd
+SetG15PullUp "A"	"5"
+SetG15PullUp "B"	"5"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "3.5" "4.0"
+CheckCFAdc	"PD2" "3.5" "4.0"
+
+; 3Kpu 10Kpd
+SetG15PullUp "A"	"6"
+SetG15PullUp "B"	"6"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "3.4" "3.9"
+CheckCFAdc	"PD2" "3.4" "3.9"
+
+; 3.9Kpu 10Kpd
+SetG15PullUp "A"	"7"
+SetG15PullUp "B"	"7"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "3.25" "3.7"
+CheckCFAdc	"PD2" "3.25" "3.7"
+
+; 4.5Kpu 10Kpd
+SetG15PullUp "A"	"8"
+SetG15PullUp "B"	"8"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "3.1" "3.5"
+CheckCFAdc	"PD2" "3.1" "3.5"
+
+; 10Kpu 10Kpd
+SetG15PullUp "A"	"9"
+SetG15PullUp "B"	"9"
+SetG15PullDown "A"	"4"
+SetG15PullDown "B"	"4"
+CheckCFAdc	"PD1" "2.25" "2.65"
+CheckCFAdc	"PD2" "2.25" "2.65"
+
+;510 pull up to 5v
+SetG15PullUp "A"	"2"
+SetG15PullUp "B"	"2"
+SetG15PullDown "A"	"0"
+SetG15PullDown "B"	"0"
+CheckCFAdc	"PD1" "4.55" "5.0"
+CheckCFAdc	"PD2" "4.55" "5.0"
+
+;Open collectors turned on
+SetG15PullUp "A"	"2"
+SetG15PullUp "B"	"2"
+SetG15PullDown "A"	"5"
+SetG15PullDown "B"	"5"
+CheckCFAdc	"PD1" "-.15" ".3"
+CheckCFAdc	"PD2" "-.15" ".3"
+
+SetG15PullUp "A"	"0"
+SetG15PullUp "B"	"0"
+SetG15PullDown "A"	"0"
+SetG15PullDown "B"	"0"
+SelectAllPins "0"
+
+; ------------------- special test for pins 9, 7, and 15 -------------------
+; Pins 7 and 15 have ISO PULLUPS VIA THE ASIC
+; Pins 9 and 15 have OPEN COLLECTOR DRIVERS
+
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+; pin 9 test open collector driver with 330 pullup  -------------
+SetG15PullUp "A" "1" 				; 330 pullup on pin driver A
+SetG15PullUpVbat "0" "1"					; SET TO PULL UP TO V BAT
+CheckCFAdc	"PD1" "14" "15.5"
+
+SelectMuxA "1" "9" "1"
+SetFpgaregister "89F" "01" 			; THIS Register control OC on Pin 9
+CheckCFAdc	"PD1" "-.15" ".3"
+SetFpgaregister "89F" "00"			; Shuts off pin 9 OCD
+CheckCFAdc	"PD1" "14" "15.5"
+
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+
+; pin 7 and 15 test 510, 1k, and OCD ---------------
+SelectMuxA "1" "7" "1"					;Turn on pin 7 on mux A
+SelectMuxB "1" "15" "1"					;Turn on pin 15 on Mux B
+SetAsicRegister "1" "5" "0"			; Make sure iso pullups are off
+
+CheckCFAdc	"PD1" "-.15" "1.2" 		;measure voltage on MUX A
+SetAsicRegister "1" "5" "40" 		;Sets 500 pull up on pin 7
+SetG15PullDown "A"	"3"				;3.9K pull down on MUXA
+CheckCFAdc	"PD1" "12.5" "13.5"		;13.2v calculated 12.77v read
+SetAsicRegister "1" "5" "80" 		;Sets 1K pull up on pin 7
+CheckCFAdc	"PD1" "11" "12.2"			;11.9v caluculated 11.42v read
+SetG15PullDown "A" "0"
+SetG15PullUp   "A" "0"
+
+CheckCFAdc	"PD2" "-.15" "1.4" 		; with no load, mux leakage makes this read higher
+SetAsicRegister "1" "5" "10" 		;Sets 500 pull up on pin 15
+SetG15PullDown	"B" "3" 			;3.9K pull down 
+CheckCFAdc	"PD2" "12.3" "13.7"		;13.2 12.77
+SetAsicRegister "1" "5" "20"		;Sets 1K pull up on pin 15
+CheckCFAdc	"PD2" "11" "12.2"		;11.9 11.42
+SetG15PullDown "B" "0"
+CheckCFAdc	"PD2" "14" "15.5"
+SetFpgaregister "89F" "04" 			;THIS Register control OCD on Pin 15
+CheckCFAdc	"PD2" "-.15" ".3"
+
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+SetAsicRegister "1" "5" "00"		; Make sure iso pullups are off
+SetFpgaregister "89F" "00"		; open collector off
+
+;-----------------------------Start Pull Up to 15v test--------------------------
+SetG15PullUp	"A" "9"		;set 10K pull up and 10K pull down on both pin drivers
+SetG15PullUp	"B" "9"
+SetG15PullDown	"A" "4"
+SetG15PullDown	"B" "4"
+SetG15PullUpVbat "0" "1" 
+CheckCFAdc	"PD1" "6.9" "7.7"
+CheckCFAdc	"PD2" "6.9" "7.7"
+
+SetG15PullUpVbat "0" "0"	;Set Pull ups back to 5v
+
+CheckCFAdc	"PD1" "2.15" "2.65"
+CheckCFAdc	"PD2" "2.15" "2.65"
+
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+
+
+;-------------------------------- DAC Comparator Tests ----------------------------------
+
+SetBaud	"1"
+SelectMuxA "1" "9" "1"
+SelectMuxB "1" "15" "1"
+
+;---Set 10K pull up and 10K pull down
+SetG15PullUp	"A" "9"
+SetG15PullUp	"B" "9"
+SetG15PullDown	"A" "4"
+SetG15PullDown	"B" "4"
+
+CheckCFAdc	"PD1" "2.15" "2.65"
+
+;---Change Comparator DAC voltage ABOVE
+SetReference	"53"			; 2.15v
+pause "100"
+CheckFpgaRegister "8A8" "0" "0";;;;;;;;;;;;;;;;;;;;;;;;;NEW Bits for Comp A B in Resister
+CheckFpgaRegister "8A8" "1" "0" ;;;;;;;;;;;;;;;;;;;;;;;;
+CheckFpgaRegister "858" "4" "0" ;;;;;;;;;;;;;;;;;;;;;;;; Comp 15
+CheckFpgaRegister "859" "6" "0" ;;;;;;;;;;;;;;;;;;;;;;;; Comp 9
+ComparatorCheck "9" "0"
+ComparatorCheck "15" "0"
+
+---Change comparator DAC voltage BELOW
+SetReference	"65"			;2.64v
+pause "100"
+CheckFpgaRegister "8A8" "0" "1"
+CheckFpgaRegister "8A8" "1" "1"
+CheckFpgaRegister "858" "4" "1" ;;;;;;;;;;;;;;;;;;;;;;;; Comp 15
+CheckFpgaRegister "859" "6" "1" ;;;;;;;;;;;;;;;;;;;;;;;; Comp 9
+ComparatorCheck "9" "1"
+ComparatorCheck "15" "1"
+
+SetReference "128"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+
+
+;--------------- Start Switch Matrix 1A MUX A (ASIC 1) and Switch Matrix 1A MUX C (ASIC 2) Tests -------------------
+; use pin MUX A to generate a voltage on MUX A
+; then steer it out MUX A and into MUX C and read on ADC 3.
+
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+;Set 10K pullup to 5v and 10K pull down to gnd on pin driver 1 only
+SetG15PullUp	"A" "9"
+SetG15PullUp	"C" "0"
+SetG15PullDown	"A" "4"
+SetG15PullDown	"C" "0"
+CheckCFAdc	"PD1" "2.2" "2.65"		; verify voltage
+CheckCFAdc "PD3" "-.15" "1.2"			;open connection
+
+SelectMuxA "1" "1" "1"
+SelectMuxA "2" "1" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "2" "1"
+SelectMuxA "2" "2" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "3" "1"
+SelectMuxA "2" "3" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "6" "1"
+SelectMuxA "2" "6" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "7" "1"
+SelectMuxA "2" "7" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "8" "1"
+SelectMuxA "2" "8" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "9" "1"
+SelectMuxA "2" "9" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "10" "1"
+SelectMuxA "2" "10" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "11" "1"
+SelectMuxA "2" "11" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "12" "1"
+SelectMuxA "2" "12" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "13" "1"
+SelectMuxA "2" "13" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "14" "1"
+SelectMuxA "2" "14" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SelectMuxA "1" "15" "1"
+SelectMuxA "2" "15" "1"
+CheckCFAdc	"PD3" "2.2" "2.65"
+SelectAllMuxA "1" "0"
+SelectAllMuxA "2" "0"
+
+SetG15PullUp	"A" "0"
+SetG15PullUp	"C" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"C" "0"
+
+
+; -------------------- CCD Termination Tests  SW3 in Asic-------------------------
+SetAsicRegister "1" "7" "0C"			;Set 0x8=term B BUS- SW3.1 - 0x4=term A BUS+ SW3.0
+CheckCFAdc	"PD1" "2.3" "2.7"		;Calculated 2.511v measured 2.34v
+CheckCFAdc	"PD2" "2.3" "2.7"		;Calculated 2.4889v measured 2.37v
+SetAsicRegister "1" "7" "0"
+
+; --------VCOMM and MUX 2A & 2B and Internal J1850 and CAN 1 transciever Rx----------
+
+SetFpgaregister "89E" "40"				;VCOMM_En
+SetFpgaregister "959" "02"				;VPW Mode VCOMM at 8v
+SetAsicRegister "1" "0" "80"			;MUX2A J1850P
+SetAsicRegister "1" "2" "80"			;MUX2B J1850M
+
+CheckCFAdc	"PD1" "-.15" ".3"			;Internal J1850
+CheckCFAdc  "PD2" "7.2" "8"				;measured 7.4
+;UserPrompt "Measure Vcom at 8v"
+SetAsicRegister "1" "4" "08"			;10K PU J1850P
+CheckCFAdc	"PD1" "3.35" "3.85"			;Internal J1850 to VCOMM... measured 3.45v
+CheckCFAdc  "PD2" "7.2" "8.0"			;measured 7.4
+CheckFpgaRegister "984" "1" "0"			;Verify J1850_Rx is lo
+SetAsicRegister "1" "4" "04"			;10K PD J1850M
+CheckCFAdc	"PD1" "-.15" ".3"			;Internal J1850 to VCOMM...
+CheckCFAdc  "PD2" "3.5" "3.95"			;measured 3.56v
+
+SetG15PullUp "A" "1"					;330 OHM PU TO 5V on MUXA J1850P
+CheckCFAdc	"PD1" "4.3" "4.9"			;Internal J1850
+CheckCFAdc  "PD2" "3.5" "3.9"			;measured 
+CheckFpgaRegister "984" "1" "1"			;Verify J1850_Rx is Hi
+;ReadFpgaRegister "984"
+SetAsicRegister "1" "7" "10"			;Set Inverse J1850_Rx
+CheckFpgaRegister "984" "1" "0"			;J1850_Rx is Lo
+SetAsicRegister "1" "7" "00"			;Clear Inverse J1850_Rx
+CheckFpgaRegister "984" "1" "1"			;Verify J1850_Rx is Hi
+SetAsicRegister "1" "4" "00"			;Turns Off J1850 PU/PD
+SetG15PullUp "A" "0"					;Turns off 330k pu on MUXA J1850P
+CheckFpgaRegister "984" "1" "0"			;Verify J1850_Rx is Lo
+SetFpgaregister "983" "4"				;984 bit 2...en bit 1...J1850_tx goes lo
+;ReadFpgaRegister "983"
+CheckCFAdc	"PD1" "7.4" "8.3"			;Internal J1850P measued 7.6v
+CheckCFAdc  "PD2" "-.15" ".3"			;J1850M goes lo.
+SetAsicRegister "1" "4" "02"			;EN_hi J1850P
+CheckCFAdc	"PD1" "-.15" ".3"			;Internal J1850P goes lo
+CheckCFAdc  "PD2" "-.15" ".3"			;J1850M stays lo.
+SetAsicRegister "1" "4" "01"			;EN Low on J1850M 
+CheckCFAdc	"PD1" "7.4" "8.3"			;Internal J1850P goes back to 7.6v
+CheckCFAdc  "PD2" "7.2" "8.0"			;J1850M goes hi.
+SetFpgaregister "983" "00"				;Disable J1850 TX
+CheckCFAdc	"PD1" "-.15" ".3"			;Internal J1850P goes back to 0v
+CheckCFAdc  "PD2" "7.2" "8.0"			;J1850M stays hi.
+
+SetFpgaregister "89E" "60"				;VCOMM_En and ISO mode Vcomm to Vbat
+SetFpgaregister "959" "00"				;Clear VPW mode
+pause "100"
+;SetAsicRegister "0" "80"				;MUX2A to J1850P already set
+;SetAsicRegister "2" "80"				;MUX2B to J1850M already set
+CheckCFAdc	"PD1" "-.15" ".3"			;Internal J1850
+CheckCFAdc  "PD2" "12.8" "14"			;measured 13.23v
+;UserPrompt "Measure Vcom at Vbat"
+
+
+; SW CAN TEST -------------------------------
+
+SetFpgaregister "89E" "40"				; VCOMM_En and disable ISO mode VCOMM to 5v
+SetFpgaregister "839" "04"				; SW_CAN
+pause 200
+SetFpgaregister "983" "04"				; set J1850_tx bit low
+CheckCFAdc	"PD1" "5.0" "5.5"			;Internal J1850 measured 5.0v 
+CheckCFAdc  "PD2" "4.8" "5.3"			;Internal J1850 measured 4.8v
+SetFpgaregister "983" "00"				;set J1850_tx bit high
+CheckCFAdc	"PD1" "-.15" "0.3"			;Internal J1850  
+CheckCFAdc  "PD2" "4.8" "5.3"			;Internal J1850
+SetFpgaregister "89E" "00"				;VCOMM_Disable
+SetFpgaregister "839" "00"				; SW_CAN
+SetFpgaregister "983" "00"
+
+
+; CCD TEST -----------------------------------
+
+SetG15PullUp "A" "9"					;10k pu on CCD Bus+
+SetAsicRegister "1" "0" "40"			; CCD+ sw
+SetAsicRegister "1" "2" "40"			; ccd- sw
+CheckCFAdc	"PD1" "4.5" "5.0"			;BusA1 CCD Bus+
+CheckCFAdc  "PD2" ".5" "1.4"			;BusB1 CCD Bus- ;was hi 1.1
+CheckFpgaRegister "632" "0" "0"			;CCD_Rx is lo
+ReadFpgaRegister "632"
+SetG15PullUp "A" "0"					;Remove 10K pu on BUS+
+SetG15PullUp "B" "9"					;10k pu on CCD Bus-
+CheckCFAdc	"PD1" ".5" "1.5"			;BusA1 CCD Bus+
+CheckCFAdc  "PD2" "4.5" "5.0"			;BusB1 CCD Bus-
+CheckFpgaRegister "632" "0" "1"			;CCD_Rx goes hi
+SetG15PullUp "B" "0"
+SetG15PullUp "A" "9"					; back to pu on A
+CheckCFAdc	"PD1" "4.5" "5.0"			;BusA1 CCD Bus+
+CheckCFAdc  "PD2" ".5" "1.6"			;BusB1 CCD Bus-		;was 1.3
+CheckFpgaRegister "632" "0" "0"			;CCD_Rx goes lo
+SetG15PullUp "A" "0"					;Remove 10K pu on BUS+
+SetFpgaregister "630" "04"				;Set CCD_TX hi
+ReadFpgaRegister "630"
+CheckCFAdc	"PD1" "4.6" "5.2"			;BusA1 CCD Bus+ Reads Hi due to CCD_TX set
+CheckCFAdc  "PD2" "-.15" ".3"
+ReadFpgaRegister "632"
+SetFpgaregister "630" "00"				;Set CCD_TX lo
+ReadFpgaRegister "630"
+CheckCFAdc	"PD1" ".5" "1.5"			;BusA1 CCD Bus+ Reads lo due to CCD_TX clear
+CheckCFAdc  "PD2" ".5" "2.4"  			;was 1.7										
+ReadFpgaRegister "632"
+
+SetCANGpioMode "1"
+SetFpgaregister "839" "01"				;CAN_HS1_EN Flex
+SetAsicRegister "1" "0" "20"			;Closes Mux2A.0 BusA0 CAN1_High
+SetAsicRegister "1" "2" "20"			;Closes Mux2B.0 BusB0 CAN1_low
+CheckCFAdc	"PD1" "2.3" "2.75"			;BusA0 CAN1_H 2.24v
+CheckCFAdc  "PD2" "2.3" "2.65"			;BusB0 CAN1_L  2.37v
+
+SetG15PullUp "A" "2"					;510 pullup on MuxA
+CheckCFAdc	"PD1" "4.5" "5.0"	
+pause 100;
+CheckCanRxStatus "0"     				;CanRx lo Transciever Rx Test
+SetG15PullDown "A" "5"					;Turn on open collector driver
+CheckCFAdc	"PD1" "-.15" ".3"
+CheckCFAdc  "PD2" "2.3" "2.7"			;CAN1_L  2.23v	
+CheckCanRxStatus "1"    				;CanRx hi Transciever Rx Test
+SetG15PullUp "A" "0"
+SetG15PullDown "A" "0"
+SetG15PullDown "B" "5"					;Open Collector pull down on MuxB
+CheckCFAdc	"PD1" "2.3" "2.7"
+CheckCFAdc  "PD2" "-.15" ".3"			;CAN1_L  2.23v	
+CheckCanRxStatus "0"     				;CanRx lo Transciever Rx Test
+SetAsicRegister "1" "0" "00"
+SetAsicRegister "1" "2" "00"
+SetFpgaregister "839" "00"				;CAN_HS1_EN disabled
+SetFpgaregister "89E" "00"
+SetCANGpioMode "0"
+
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+
+;================== CCD overvoltage protection test =================================
+; this test puts about 7.5 volts on CCDBUS-, then checks to make sure
+; CCD_TX can't drive the outputs. Verifies the comparator circuit.
+
+SetG15PullDown "A" "4"					; 10k pd on CCD Bus+
+SetG15PullUp "B" "9"					; 10k pu on CCD Bus-
+SetG15PullDown "B" "4"					; 10k pd on CCD Bus- should give about 2.25 volts on ccd bus-
+
+SetAsicRegister "1" "0" "40"			; CCD+ sw - turn on input switches
+SetAsicRegister "1" "2" "40"			; ccd- sw
+
+; should work normally
+SetFpgaregister "630" "00"				; Set CCD_TX lo
+CheckCFAdc	"PD1" "-.15" ".3"			; BusA1 CCD Bus+
+CheckCFAdc  "PD2" "2.2" "2.65"			; BusB1 CCD Bus-
+
+SetFpgaregister "630" "04"				; Set CCD_TX hi
+CheckCFAdc	"PD1" "4.4" "4.9"			; BusA1 CCD Bus+ 		;Up for EP3
+CheckCFAdc  "PD2" ".2" ".6"				; BusB1 CCD Bus-
+
+; set pullup to vbat (15volts), it should prevent TX from driving the output
+SetFpgaregister "630" "00"				; Set CCD_TX lo
+SetG15PullupVbat "0" "1"				; set to vbat
+pause "500"								; delay for 1 meg/.1uf RC time
+SetFpgaregister "630" "04"				; Set CCD_TX hi
+CheckCFAdc	"PD1" "-.15" ".3"			; BusA1 CCD Bus+
+CheckCFAdc  "PD2" "6.9" "7.7"			; BusB1 CCD Bus-
+SetG15PullupVbat "0" "0"				; back to 5 volts
+
+SetFpgaregister "630" "00"				; clean up												
+ReadFpgaRegister "632"
+ReadFpgaRegister "630"
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+SetAsicRegister "1" "0" "00"
+SetAsicRegister "1" "2" "00"
+
+; ================== end overvoltage protection test ================================
+
+; ----------------------------121ohm PWM terminations S2A ----------------------------
+
+SetFpgaregister "982" "08"				; Enable J1850 Toggle Test
+SetFpgaregister "980" "10"				; Sets S2A_Term_GND
+SetG15PullUp "A" "1"					; 330 ohm pu on MUXA
+CheckCFAdc	"PD1" "1.0" "1.5"			; Measure 1.13v
+CheckCFAdc  "PD2" ".1" "1.0"			;was .3
+SetG15PullUp "A" "0"					; 330 Ohm pullup off
+
+; start TEST OVERVOLTAGE PROTECTION  added mm 4/7/2015
+; set pullup to vbat (15volts), it should prevent TX from driving the output
+SetFpgaregister "982" "00"				; Disable J1850 Toggle Test
+SetG15PullupVbat "0" "1"				; set to vbat 15v
+SetG15PullUp "A" "9"					; 10k pu on MUXA
+SetG15PullDown "A" "4"					; 10k pd on MUXA to give 7 volts overvoltage level
+SetFpgaregister "982" "08"				; Enable J1850 Toggle Test
+CheckCFAdc	"PD1" "6.9" "7.7"			; 
+SetG15PullupVbat "0" "0"				; back to 5 volts
+SetG15PullUp "A" "0"					; pullup off
+SetG15PullDown "A" "0"					; pulldown off
+; end TEST OVERVOLTAGE PROTECTION
+
+SetFpgaregister "980" "20"				; Sets S2A_Term_5v
+SetG15PullDown "B" "3"					; 3.9K pull down on MuxB
+CheckCFAdc	"PD1" "-.15" ".3"			;
+CheckCFAdc  "PD2" "4.4" "4.9"			; Measure 4.42
+SetFpgaregister "982" "00"				; Disable J1850 Toggle Test
+CheckCFAdc  "PD2" "-.15" ".3"			;
+
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+
+; ---------------------SW2 CAN2A and CAN2B Can2 Transceiver Rx test---------------------
+SetCANGpioMode "1"
+SetFpgaregister "839" "08"				;CAN_HS2_EN Flex
+;ReadFpgaRegister "839"
+SetAsicRegister "1" "4" "C0"			;Closes SW2.0 CAN2A and SW2.1 CAN2B
+SelectMuxA "1" "6" "1"
+SelectMuxB "1" "14" "1"
+CheckCFAdc	"PD1" "2.3" "2.7"			;CAN2_H  2.07v
+CheckCFAdc  "PD2" "2.3" "2.7"			;CAN2_L  2.23v
+SetG15PullUp "A" "2"					;510 pullup on MuxA
+CheckCFAdc	"PD1" "4.4" "5.0"	
+pause 100;
+CheckCanRxStatus "0"     				;CanRx lo Transciever Rx Test
+SetG15PullDown "A" "5"					;Turn on open collector driver
+CheckCFAdc	"PD1" "-.15" ".3"
+CheckCFAdc  "PD2" "2.3" "2.7"			;CAN2_L  2.23v	
+CheckCanRxStatus "1"    				;CanRx hi Transciever Rx Test
+SetG15PullUp "A" "0"
+SetG15PullDown "A" "0"
+SetG15PullDown "B" "5"					;Open Collector pull down on MuxB
+CheckCFAdc	"PD1" "2.3" "2.7"			;
+CheckCFAdc  "PD2" "-.15" ".3"			;CAN2_L  0v
+CheckCanRxStatus "0"     				;CanRx lo Transciever Rx Test
+
+SetFpgaregister "839" "0"				;CAN_HS1_EN disabled
+SetAsicRegister "1" "4" "00"			;Open SW2 switches.
+SetCANGpioMode "0"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+
+; ------------------------------ SW 1 --------------------------------------
+SetFpgaregister "89E" "40"				;VCOMM_En
+SetFpgaregister "959" "02"				;VPW Mode VCOMM at 8v
+SetAsicRegister "1" "4" "30"			;Close SW1.1 connects p2 to J850p and SW1.2 connects p10 to J1850M
+SelectMuxA "1" "2" "1"
+SelectMuxB "1" "10" "1"
+CheckCFAdc	"PD1" "-.15" ".3"			;Internal J1850
+CheckCFAdc  "PD2" "7.3" "8.0"			;measured 7.4
+;UserPrompt "Measure Vcom at 8v"
+SetAsicRegister "1" "4" "38"			;10K PU J1850P
+CheckCFAdc	"PD1" "3.4" "3.85"			;Internal J1850 to VCOMM... measured 3.45v
+CheckCFAdc  "PD2" "7.3" "8.0"			;measured 7.4
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetFpgaregister "89E" "00"				;Clear VCOMM_En
+SetFpgaregister "959" "00"				;Clear VPW Mode
+SetAsicRegister "1" "4" "00"			;Open SW1.1 and SW1.2
+
+
+; ----------------------------------ISO----------------------------------------
+SetFpgaregister "89E" "60"				;VCOMM_En and ISO mode Vcomm to Vbat
+SetG15PullUpVbat "0" "1"				;Set Pull ups to VBAT
+SelectMuxA "1" "7" "1"
+SelectMuxB "1" "15 "1"
+SetG15PullUp "A" "2"					;510 pullup on MuxA
+SetG15PullUp "B" "2"					;510 pullup on MuxB
+;	ASIC DAC Reg 6 defaults to 4.94v Reg5 defaults to ISO_RX from both pin 7 and pin 15
+CheckFpgaRegister "984" "0" "1"		;ISO_Rx is hi Both pin 7 and 15 are high due to 510 pu.
+SetFpgaregister "983" "30"			;En ISO Test and set ISO TXA drive pin 7 lo.
+SetAsicRegister "1" "5" "04"		:Tx_Sel in Asic TXA on pin 7 TXB on Pin 15
+CheckCFAdc	"PD1" "-.15" ".44"		;mux pin7 S5 lo due to TXA
+CheckCFAdc	"PD2" "14" "15"			;mux pin 15 S13
+CheckFpgaRegister "984" "0" "0"		;ISO_Rx goes lo due to pin 7 going lo.
+SetAsicRegister "1" "5" "05"		;Tx_Sel in Asic TXA on pin 7 TXB on Pin 15. Reg5 bit 0 set to ignore pin 7
+CheckFpgaRegister "984" "0" "1"		;ISO_Rx goes hi due to Reg5 bit 0 set to ignore pin 7.
+SetFpgaregister "983" "28"			;En ISO Test and set ISO TXB drive pin 15 lo.
+CheckCFAdc	"PD2" "-.15" ".4"		;mux pin15 S13 lo due to TXB
+CheckCFAdc	"PD1" "14" "15"			;mux pin 7
+CheckFpgaRegister "984" "0" "0"		;ISO_Rx goes lo due to pin 15 going lo.
+SetAsicRegister "1" "5" "06"		;Tx_Sel in Asic TXA on pin 7 TXB on Pin 15. Reg5 bit 1 set to ignore pin 15
+CheckFpgaRegister "984" "0" "1"		;ISO_Rx goes hi due to Reg5 bit 1 set to ignore pin 15.
+SetAsicRegister "1" "5" "08"		;Tx_Sel in Asic TXA drives pin 7 and Pin 15
+SetFpgaregister "983" "30"			;En ISO Test and set ISO TXA drive pin 7 and pin 15 lo.
+CheckCFAdc	"PD1" "-.15" ".44"		;mux pin7 S5 lo due to TXA
+CheckCFAdc	"PD2" "-.15" ".4"		;mux pin15 S13 lo due to TXA
+CheckFpgaRegister "984" "0" "0"		;ISO_Rx goes lo due to pin 7 going lo.
+SetAsicRegister "1" "5" "07"		;Tx_Sel in Asic TXA on pin 7 TXB on Pin 15. Reg5 both receivers disabled
+CheckFpgaRegister "984" "0" "1"		;ISO_Rx goes hi due to Reg5 bit 0 and 1 set.
+SetAsicRegister "1" "5" "00"		;Tx_Sel in Asic TX disabled. pin 7 and 15 should go hi. Rx enabled.
+CheckCFAdc	"PD1" "14" "15"			;mux pin 7
+CheckCFAdc	"PD2" "14" "15"			;mux pin 15 S13
+CheckFpgaRegister "984" "0" "1"		;ISO_Rx stays hi after being enabled.
+
+;	ASIC DAC
+SetAsicRegister "1" "6" "11"			;Set DAC Out to approx 2v
+SetG15PullUpVbat "0" "0"				;Set Pull ups to 5V
+SetG15PullUp "A" "9"					;10K pullup on MuxA to 5v
+SetG15PullDown "A" "3"					;3.9K pulldown on MuxA
+CheckCFAdc	"PD1" "1.2" "1.5"			;mux pin 7 reads 1.16
+CheckFpgaRegister "984" "0" "0"			;ISO_Rx lo pin 7 voltage is 1.4v. below Dac v Rx goes lo.
+SetG15PullDown "A" "4"					;10K pulldown on MuxA
+CheckCFAdc	"PD1" "2.2" "2.65"			;mux pin 7 is above DAC Rx goes Hi reads 2.14v
+CheckFpgaRegister "984" "0" "1"			;ISO_Rx lo pin 7 voltage is 2.2v. above Dac v Rx goes hi.
+
+;	cleanup for ISO Test
+SetFpgaregister "89E" "00"				;VCOMM_En and ISO mode Vcomm Cleared
+SelectMuxA "1" "7" "0"
+SelectMuxB "1" "15 "0"
+SetG15PullUp "A" "0"					;510 pullup on MuxA removed
+SetG15PullDown "A" "0"					;Pull down on MUXA removed
+SetG15PullUp "B" "0"
+SetG15PullUpVbat "0" "0"				;Set Pull ups to 5V
+SetFpgaregister "983" "00"				;Disable ISO Test and clear ISO TX's
+
+
+;------------------------------- Start Pin Driver test for ASIC 2-------------------------
+; Only 3.92k and 10 K pulldowns and only has 2 pin drivers
+; 51 Ohm and 100 Ohm pulldowns should be remapped to OCDrivers
+
+SetReference	"128"
+SetBaud		"1"
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+
+; check 5 volt supply 330pu 
+SetG15PullUp "C"	"1"
+SetG15PullUp "D"	"1"
+CheckCFAdc	"PD3" "4.5" "5.0"
+CheckCFAdc	"PD4" "4.5" "5.0"
+
+; 330pu 3.92Kpd
+SetG15PullDown "C"	"3"
+SetG15PullDown "D"	"3"
+CheckCFAdc	"PD3" "4.1" "4.55"
+CheckCFAdc	"PD4" "4.1" "4.55"
+
+; 3.9Kpu 3.9Kpd
+SetG15PullUp "C"	"7"
+SetG15PullUp "D"	"7"
+CheckCFAdc	"PD3" "2.2" "2.6"
+CheckCFAdc	"PD4" "2.2" "2.6"
+
+; 330pu 10Kpd
+SetG15PullUp "C"	"1"
+SetG15PullUp "D"	"1"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "4.3" "4.8"
+CheckCFAdc	"PD4" "4.3" "4.8"
+
+; 510pu 3.92Kpd
+SetG15PullUp "C"	"2"
+SetG15PullUp "D"	"2"
+SetG15PullDown "C"	"3"
+SetG15PullDown "D"	"3"
+CheckCFAdc	"PD3" "4.0" "4.45"
+CheckCFAdc	"PD4" "4.0" "4.45"
+
+; 510pu 10Kpd
+SetG15PullUp "C"	"2"
+SetG15PullUp "D"	"2"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "4.3" "4.75"
+CheckCFAdc	"PD4" "4.3" "4.75"
+
+; 1kpu 10Kpd
+SetG15PullUp "C"	"3"
+SetG15PullUp "D"	"3"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "4.1" "4.55"
+CheckCFAdc	"PD4" "4.1" "4.55"
+
+; 2.2kpu 10Kpd
+SetG15PullUp "C"	"4"
+SetG15PullUp "D"	"4"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "3.7" "4.15"
+CheckCFAdc	"PD4" "3.7" "4.15"
+
+; 2.7kpu 10Kpd
+SetG15PullUp "C"	"5"
+SetG15PullUp "D"	"5"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "3.6" "4.0"
+CheckCFAdc	"PD4" "3.6" "4.0"
+
+; 3Kpu 10Kpd
+SetG15PullUp "C"	"6"
+SetG15PullUp "D"	"6"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "3.45" "3.85"
+CheckCFAdc	"PD4" "3.45" "3.85"
+
+; 3.9Kpu 10Kpd
+SetG15PullUp "C"	"7"
+SetG15PullUp "D"	"7"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "3.3" "3.7"
+CheckCFAdc	"PD4" "3.3" "3.7"
+
+; 4.5Kpu 10Kpd
+SetG15PullUp "C"	"8"
+SetG15PullUp "D"	"8"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "3.1" "3.5"
+CheckCFAdc	"PD4" "3.1" "3.5"
+
+; 10Kpu 10Kpd
+SetG15PullUp "C"	"9"
+SetG15PullUp "D"	"9"
+SetG15PullDown "C"	"4"
+SetG15PullDown "D"	"4"
+CheckCFAdc	"PD3" "2.2" "2.6"
+CheckCFAdc	"PD4" "2.2" "2.6"
+
+;510 pull up to 5v
+SetG15PullUp "C"	"2"
+SetG15PullUp "D"	"2"
+SetG15PullDown "C"	"0"
+SetG15PullDown "D"	"0"
+CheckCFAdc	"PD3" "4.5" "5.0"
+CheckCFAdc	"PD4" "4.5" "5.0"
+------; Open collectors turned on
+SetG15PullUp "C"	"2"
+SetG15PullUp "D"	"2"
+SetG15PullDown "C"	"5"
+SetG15PullDown "D"	"5"
+Pause "500"
+CheckCFAdc	"PD3" "-.15" ".3"
+CheckCFAdc	"PD4" "-.15" ".3"
+
+SetG15PullUp "C"	"0"
+SetG15PullUp "D"	"0"
+SetG15PullDown "C"	"0"
+SetG15PullDown "D"	"0"
+
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+
+;-----------------------------Start Pull Up to 15v test ASIC 2--------------------------
+
+;set 10K pull up and 10K pull down on both pin drivers
+SetG15PullUp "C" "9"
+SetG15PullUp "D" "9"
+SetG15PullDown "C" "4"
+SetG15PullDown "D" "4"
+SetG15PullUpVbat "1" "1" 
+CheckCFAdc	"PD3" "6.95" "7.7"
+CheckCFAdc	"PD4" "6.95" "7.7"
+;Set Pull ups back to 5v
+SetG15PullUpVbat "1" "0"
+SetG15PullDown "C" "0"
+SetG15PullDown "D" "0"
+CheckCFAdc	"PD3" "4.5" "5.0"
+CheckCFAdc	"PD4" "4.5" "5.0"
+
+SetG15PullUp "C" "0"
+SetG15PullUp "D" "0"
+SetG15PullDown "C" "0"
+SetG15PullDown "D" "0"
+
+;-------------------------------- DAC Comparator Tests ASIC 2 -----------------------------
+
+SetBaud	"1"
+SelectMuxA "2" "9" "1"
+SelectMuxA "2" "15" "1"
+
+;---Set 10K pull up and 10K pull down
+SetG15PullUp	"C" "9"
+SetG15PullUp	"D" "9"
+SetG15PullDown	"C" "4"
+SetG15PullDown	"D" "4"
+
+CheckCFAdc	"PD3" "2.2" "2.6"
+
+;---Change Comparator DAC voltage ABOVE
+SetReference	"53"
+pause "100"
+CheckFpgaRegister "8A8" "2" "0";;;;;;;;;;;;;;;;;;;;;;;;; NEW Bits for Comp C in Resister
+CheckFpgaRegister "8A8" "3" "0" ;;;;;;;;;;;;;;;;;;;;;;;; MUX D
+
+---Change comparator DAC voltage BELOW
+SetReference	"65"
+pause "100"
+CheckFpgaRegister "8A8" "2" "1"							; MUX C
+CheckFpgaRegister "8A8" "3" "1"							; MUX D
+
+SetReference "128"
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+SetG15PullUp	"C" "0"
+SetG15PullUp	"D" "0"
+SetG15PullDown	"C" "0"
+SetG15PullDown	"D" "0"
+
+
+;--------------- Start Switch Matrix 1B MUX B (ASIC 1) and Switch Matrix 1B MUX D (ASIC 2) -------------------
+; use pin driver 1 to generate a voltage, 
+; then steer it out MUX 1 and into MUX 2 (ASIC 2) and read on ADC 2
+
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+;Set 10K pullup to 5v and 10K pull down to gnd on pin driver 1 only
+SetG15PullUp	"B" "9"
+SetG15PullUp	"D" "0"
+SetG15PullDown	"B" "4"
+SetG15PullDown	"D" "0"
+CheckCFAdc	"PD2" "2.2" "2.65"		; verify voltage
+CheckCFAdc "PD4" "-.15" "1.1"			;open connection was .3
+
+SelectMuxB "1" "1" "1"
+SelectMuxB "2" "1" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "2" "1"
+SelectMuxB "2" "2" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "3" "1"
+SelectMuxB "2" "3" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "6" "1"
+SelectMuxB "2" "6" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "7" "1"
+SelectMuxB "2" "7" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "8" "1"
+SelectMuxB "2" "8" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "9" "1"
+SelectMuxB "2" "9" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "10" "1"
+SelectMuxB "2" "10" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "11" "1"
+SelectMuxB "2" "11" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "12" "1"
+SelectMuxB "2" "12" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "13" "1"
+SelectMuxB "2" "13" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "14" "1"
+SelectMuxB "2" "14" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SelectMuxB "1" "15" "1"
+SelectMuxB "2" "15" "1"
+CheckCFAdc	"PD4" "2.2" "2.65"
+SelectAllMuxB "1" "0"
+SelectAllMuxB "2" "0"
+
+SetG15PullUp	"B" "0"
+SetG15PullUp	"D" "0"
+SetG15PullDown	"B" "0"
+SetG15PullDown	"D" "0"
+
+
+; ----------------------- USE SW 1 to Test Vcomm and also test MUX2 A B  Asic 2 --------------------------
+SetFpgaregister "89E" "40"				;VCOMM_En
+SetFpgaregister "959" "02"				;VPW Mode VCOMM at 8v
+SetAsicRegister "2" "4" "30"			;Close SW1.1 connects p2 to J850p and SW1.2 connects p10 to J1850M
+SelectMuxA "2" "2" "1"
+SelectMuxB "2" "10" "1"
+CheckCFAdc	"PD3" "-.15" ".3"			;Internal J1850
+CheckCFAdc  "PD4" "7.2" "7.9"			;measured 7.4
+;UserPrompt "Measure Vcom at 8v"
+SetAsicRegister "2" "4" "38"			;10K PU J1850P
+CheckCFAdc	"PD3" "3.4" "3.8"			;Internal J1850 to VCOMM... measured 3.45v
+CheckCFAdc  "PD4" "7.2" "7.9"			;measured 7.4
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+SetFpgaregister "89E" "00"				;Clear VCOMM_En
+SetFpgaregister "959" "00"				;Clear VPW Mode
+SetAsicRegister "2" "4" "00"			;Open SW1.1 and SW1.2
+
+
+;------------------------------------------24V Detect------------------------------------------------
+;Set Power Supply Voltage at J5000.16 to 17V
+pause "500"
+CheckFpgaRegister "85A" "0" "0"  	;low Under 18V
+;Set Power Supply Voltage at J5000.16 to 19V
+pause "500"
+CheckFpgaRegister "85A" "0" "1"  	;High Over 18V
+
+
+;----------------------------------------ID test connector 1 ----------------------------------------
+;Apply logic low to J5000 pin 17 and logic high to J5000 pin 18.
+CheckFpgaRegister "87A" "0" "1" 
+CheckFpgaRegister "87A" "1" "0" 
+;Apply logic low to J5000 pin 18 and logic high to pin J5000 17.
+CheckFpgaRegister "87A" "0" "0" 
+CheckFpgaRegister "87A" "1" "1" 
+;SetFpgaRegister "87A" "00”		;Clear Register  
+
+
+;------------------------------------------32V Detect------------------------------------------------
+;Set Power Supply Voltage at J5000.16 to 31V
+CheckFpgaRegister "8AC" "1" "0"  	; Bit 1 low Under 32V
+;Set Power Supply Voltage at J5000.16 to 33V
+CheckFpgaRegister "8AC" "1" "1"  	; Bit 1 High Over 32V
+;Set Power Supply Voltage at J5000.16 to 15V
+pause "500"
+
+; -------------------------- Test for shorted pins ------------------------
+; Checks for shorts between any of the 13 vehicle communication lines.
+; shorts between any two pins should show up twice
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetG15PullUp "A" "9"			; 10k pullup ON PD1
+SetG15PullDown "B" "4"			; 10k pulldown ON PD2
+
+SelectMuxA "1" "1" "1"			; quick check to make sure Mux A and B pin 1 works
+SelectMuxB "1" "1" "1"
+CheckCFAdc	"PD1" "2.2" "2.65"
+CheckCFAdc	"PD2" "2.2" "2.65"
+
+SelectAllMuxA "1" "0"			; turn off muxes and check proper voltages		
+SelectAllMuxB "1" "0"
+CheckCFAdc	"PD1" "4.5" "5.0"
+CheckCFAdc	"PD2" "-.15" ".3"
+
+TestLabel "Test pin 1 for shorts"
+SelectMuxB "1" "1" "1"			;select 1 pin on mux 2
+SelectAllMuxA "1" "1"			;select all but 1 on mux 1
+SelectMuxA "1" "1" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 1
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 2 for shorts"
+SelectMuxB "1" "2" "1"			;select 2 pin on mux 2
+SelectAllMuxA "1" "1"			;select all but 2 on mux 1
+SelectMuxA "1" "2" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 2
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 3 for shorts"
+SelectMuxB "1" "3" "1"			;select 3 pin on mux 2
+SelectAllMuxA "1" "1"			;select all but 3 on mux 1
+SelectMuxA "1" "3" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 3
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 6 for shorts"
+SelectMuxB "1" "6" "1"			;select 6 pin on mux 2
+SelectAllMuxA "1" "1"			;select all but 6 on mux 1
+SelectMuxA "1" "6" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 6
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 7 for shorts"
+SelectMuxB "1" "7" "1"	;select 7 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 7 on mux 1
+SelectMuxA "1" "7" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 7
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 8 for shorts"
+SelectMuxB "1" "8" "1"	;select 8 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 6 on mux 1
+SelectMuxA "1" "8" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 8
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 9 for shorts"
+SelectMuxB "1" "9" "1"	;select 9 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 9 on mux 1
+SelectMuxA "1" "9" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 9
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 10 for shorts"
+SelectMuxB "1" "10" "1"	;select 10 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 10 on mux 1
+SelectMuxA "1" "10" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 10
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 11 for shorts"
+SelectMuxB "1" "11" "1"	;select 11 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 11 on mux 1
+SelectMuxA "1" "11" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 11
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 12 for shorts"
+SelectMuxB "1" "12" "1"	;select 12 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 12 on mux 1
+SelectMuxA "1" "12" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 12
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 13 for shorts"
+SelectMuxB "1" "13" "1"	;select 13 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 13 on mux 1
+SelectMuxA "1" "13" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 13
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 14 for shorts"
+SelectMuxB "1" "14" "1"	;select 14 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 14 on mux 1
+SelectMuxA "1" "14" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 14
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+TestLabel "Test pin 15 for shorts"
+SelectMuxB "1" "15" "1"	;select 15 pin on mux 2
+SelectAllMuxA "1" "1"	;select all but 15 on mux 1
+SelectMuxA "1" "15" "0"
+CheckCFAdc	"PD2" "-.15" ".3"	; something shorted to pin 15
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+; clean up
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+SetG15PullUp	"A" "0"
+SetG15PullUp	"B" "0"
+SetG15PullDown	"A" "0"
+SetG15PullDown	"B" "0"
+; ------------------------- end of shorts test -----------------------------
+
+; -----------------HS CAN TX RX test with square wave-----------------------
+ResetAsicRegister "1" "ALL"				; ASIC Reset
+SetFpgaRegister "129" "00"              ; FPGA soft reset
+CheckFpgaRegister  "984" "02" "0"	; Default lo after FPGA reset
+; Route HS1 CAN TX to HS2 CAN RX
+SetAsicRegister "1" "00" "20"           ; MUX2A
+SetAsicRegister "1" "01" "08"           ; SW1A
+SetAsicRegister "1" "02" "28"           ; MUX2B, SW1B
+SetAsicRegister "1" "04" "c0"           ; 
+SetAsicRegister "1" "07" "0c"
+SetFpgaRegister "983" "80"              ; Sets Output squarewave on HS CAN1
+CheckFpgaRegister  "984" "02" "1"	; Indicates Receiving signal on HS2 CAN
+; Route HS2 CAN TX to HS1 CAN RX
+ResetAsicRegister "1" "ALL"		; ASIC Reset
+SetFpgaRegister "129" "00"              ; FPGA soft reset
+CheckFpgaRegister  "984" "02" "0"	; Default lo after FPGA reset
+SetAsicRegister "1" "00" "20"           ; MUX2A
+SetAsicRegister "1" "01" "08"           ; SW1A
+SetAsicRegister "1" "02" "28"           ; MUX2B, SW1B
+SetAsicRegister "1" "04" "c0"           ; 
+SetAsicRegister "1" "07" "0c"
+SetFpgaRegister "983" "40"              ; Sets Output squarewave on HS CAN2
+CheckFpgaRegister  "984" "02" "1"	; Indicates Receiving signal on HS1 CAN
+
+;-----------------------------WiFi Test-----------------------------
+TestLabel "WiFi Test in Progress..."
+CheckGepWifiModule "SnaponGUEST"		;FR-Guest-OMS Access point at NeoTech
+
+;--------------------------------- Check SPI   ----------------------------
+; added FPGA register set for SPI
+;SetFpgaRegister "712" "00"
+CheckVehCommSPI
+
+;-------------------- Compares Real time clock to PC Clock ------------------
+CheckRealtimeClock "2"	
+
+;TestLabel "Test Complete."
+EndScript
+
+;-----------------------------------------------------------------------------------------------------
+; REVISION HISTORY
+; 
+; Rev 3 Line 323 is missing a quotation mark on high side tolerence.
+; Rev 2 Modified the Purpose statement. Each comment is limited to 120 characters. The ScannerMfgTest program crashed when this was exceeded.
+; Rev 1 Changed name to G16_PD_TS_v1.txt was 01_G16_PD_V6.txt Modified for into a test specification.
+; Rev 6 Modified tolrences based on statistical analysis of EP2 results.
+; Rev 5 Added Internal Battery measurement, VFET running check, and Can TX verification.
+; Rev 4 10/12/2015 Changed WiFi access point
+; Rev 3 9/30/2015 Increased COMP reference to 65.
+; Rev 2 9/29/2015 Added RTC set and check. Opened CCD and open connection hi side tolerance.
+; Rev 1 9/3/2015 Renamed 01_G16_PD_V1.txt
+; Rev 26 7/17/2015 Removed Firmware verifications for Service.
+; Rev 25 6/3/2015 S4Test 6.4. Modified to match S4Test specification rev4.
+; Rev 24 5/22/2015 S4Test 6.2. Removed Apple Co-processor test.
+; Rev 23 5/19/2015 IPL 1.7, SPL 3.2, FPGA 1.3, S4Test 6.1. Flash V30 for RevA/EP4. Matched Test Spec rev1.3 document.
+; Rev 22 5/13/2015 Corrected the FPGA reset register form 120 to 129. Fixed typo in MUX B test on line 987 and 988.
+; Rev 21 5/4/2015 S4Test 5.9
+; Rev 20 4/23/2015 Bumped up CCD, OC driver, pull up to 5v and voltage divider circuit tolerances
+; Rev 19 4/20/2015 New slew rate. Ipl 1.5 Spl 2.8 S4test 5.7. Open tolerences.
+; Rev 18 4/15/2015 Open high side tolerences on multiple readings for EP3.
+; Rev 17 4/13/2015 Test app 5.5 fixed PVA current bug that 5.4 had. Different slew rate.
+; Rev 16 4/8/2015 Updated expected firmware Test app 5.2 IPL 1.4 SPL 2.7
+; Rev 15 4/7/2015 Added 121 Ohm termination overvoltage test, updated FPGA ver value - mm
+; Rev 14 4/7/2015 Added CCD overvoltage protection test  mm
+; Rev 13 3/25/2015 SPL v2.6 S4Test 5.1
+; Rev 12 3/19/2015 New FPGA rev 1.0. Follows the intended flow of clearing the PVA OC. Added connection and switch setup.
+; Rev 11 3/6/2015 S4Test 4.9 ILP 1.3 SPL 2.5 FPGA 149.18. Changed MUX test to catch opens at ASIC pin. Out A measure C. Out B measure D
+; Rev 10 2/13/2015 NSTest 4.7 supports AD cal ipl v12 spl v23 fpga v149.10. Changed files name to 01_S4...
+; Rev 9 1/28/205 Rev 8 limit changes discarded. NS3test 4.4 and FPGA 145.7
+; Rev 7 1/22/2014 NS3Test v4.2. Updated limits per EP2 results.
+; Rev 6 FPGA v5
+: Rev 5 Opened Line 235 13.4. Line 494 13.7
+; Rev 4 FPGA rev 149.4. opened line 541 to 1.4v. Open hi on line 504 5v vcom to 5.3.Opened ADC to 20v +/-.05. OPened 1001 to 7.8 from 7.7
+; Rev 3 Compensate for Asic 2 PU to Vbat. Openned the 0v hi limit to 1v from .7v in CCD tests. Added Beeper and LED Tests.
+; Rev 2 Turn on Vfet. New Firmware.
+; rev 1 renamed 00_G15_PinDriver_EP2_V1
+; rev 15 12/14/2014 Added 20v ref check on PD2.Fixed line 211 missing quote.
+; rev 14 Uncommented Bluetooth test becasue NS3Test v3.3 works. SPL 15.
+; rev 13 Added Bluetooth Test but its commented out. SPL v14 FPGA 96.18. DAC comparator register changed to 8A8 from 848.
+; rev 12 New firmware across the board. Opened CAN tolerances. Added Apple Coprocessor Test, ISO and "ASIC Dac" tests.
+; rev 11 fixed sw can test changed tolerance for new FPGA inversion.
+; rev 10 10/31/14 changed all selectmux commands to dual asic format
+; rev 9 10/30/14 updated rev numbers
+; rev 8 10/20/14 more updates as for rev 7
+; rev 7 10/20/14 Started changes for new dual asic and separate pin driver command interface REQUIRES sdp TV30 OR NEWER
+; rev 6 Open Pull up to 5v low limit form 4.5 to 4.4v, CCD - to 4.1 from 4.2 Added tests for SW1, SW2, Can1 and Can2 transceivers.
+; rev 5 10/14/2014 Added CCD , J1850, Terminations, Vcomm, some CAN
+; rev 4 9/29/2014 debugged 
+; rev 3 9/29/2014 broke into 2 scripts for now
+; rev 2 9/29/2014 changed SelectMuxA/2 commands to selectmuxa/b format
+; rev 1 8/20/2014 STARTED FOR GEP2015 PROTO 1 BUILD
+
+
+
+

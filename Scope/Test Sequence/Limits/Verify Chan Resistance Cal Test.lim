@@ -1,0 +1,18 @@
+Verify Chan Resistance Cal Test
+<Step Name>	Comp	Limits.Low		Limits.High
+Verify 0 Ohms Cal	"GELE"	-0.2		0.2
+Verify 10 Ohms Cal	"GELE"	9.7		10.7
+Verify 50 Ohms Cal	"GELE"	49.375		50.625
+Verify 190 Ohms Cal	"GELE"	187.625		192.375
+Verify 1.0k Ohms Cal	"GELE"	987.5		1012.5
+Verify 1.9k Ohms Cal	"GELE"	1876.25		1923.75
+Verify 10k Ohms Cal	"GELE"	9875		10125
+Verify 19k Ohms Cal	"GELE"	18762.5		19237.5
+Verify 100k Ohms Cal	"GELE"	98750		101250
+Verify 190k Ohms Cal	"GELE"	185000		192000
+Verify 1M Ohms Cal	"GELE"	987500		1012500
+Verify 1.9M Ohms Cal	"GELE"	1876255		1923750
+Verify 10M Ohms Cal	"GELE"	9875000		10125000
+
+
+End Limits

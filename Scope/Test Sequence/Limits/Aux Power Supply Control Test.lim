@@ -1,0 +1,6 @@
+Aux Power Supply Control Test
+<Step Name>	Comp	Limits.Low
+Aux Power Supply On	"EQ"	0
+Aux Power Supply Off	"EQ"	0
+
+"End Limits"

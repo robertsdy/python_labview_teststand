@@ -1,0 +1,12 @@
+Trigger Function Test
+<Step Name>	Comp	Limits.High	Limits.Low
+(12.1) Measure DB9_8 at Trigclear	"GELE"	0.2	0
+(12.2) Measure DB9_8 at Trigset	"GELE"	5.5	4.9
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+
+End Limits

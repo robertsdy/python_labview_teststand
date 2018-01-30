@@ -1,0 +1,5 @@
+Silo Mem Test
+<Step Name>	Comp	Limits.Low
+Test Silo Memory	"EQ"	7
+
+End Limits

@@ -1,0 +1,14 @@
+Calibration Table Comparison Test
+<Step Name>	Comp	Limits.Low
+CalStruct_IncrementNumCals	"EQ"	0
+Calstruct_Write	"EQ"	0
+Calstruct_Read	"EQ"	0
+Calstruct_Read Second time	"EQ"	0
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+
+End Limits

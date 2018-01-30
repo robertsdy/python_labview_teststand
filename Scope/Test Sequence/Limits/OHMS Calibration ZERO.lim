@@ -1,0 +1,10 @@
+OHMS Calibration ZERO
+<Step Name>	Comp	Limits.Low
+(4.0) Calibrate Zero Ohms	"EQ"	0
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

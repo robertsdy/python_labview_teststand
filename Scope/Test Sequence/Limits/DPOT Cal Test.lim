@@ -1,0 +1,30 @@
+DPOT Cal Test
+<Step Name>	Comp	Limits.Low
+CalStruct_Read	"EQ"	0
+CalStruct_Init	"EQ"	0
+CalStruct_SetStrings	"EQ"	0
+ToggleACTestMode	"EQ"	0
+StartDPOT_Cal	"EQ"	0
++1V Cal DPOT at Scale	"EQ"	0
+-1V  Cal DPOT at Scale	"EQ"	0
++2V  Cal DPOT at Scale	"EQ"	0
+-2V  Cal DPOT at Scale	"EQ"	0
++5V  Cal DPOT at Scale	"EQ"	0
+-5V  Cal DPOT at Scale	"EQ"	0
++10V  Cal DPOT at Scale	"EQ"	0
+CalibratePeakChan2	"EQ"	0
+-10V  Cal DPOT at Scale	"EQ"	0
+CalibratePeakChan1	"EQ"	0
++20V  Cal DPOT at Scale	"EQ"	0
+-20V  Cal DPOT at Scale	"EQ"	0
++50V  Cal DPOT at Scale	"EQ"	0
+-50V  Cal DPOT at Scale	"EQ"	0
++100V  Cal DPOT at Scale	"EQ"	0
+-100V  Cal DPOT at Scale	"EQ"	0
++200V  Cal DPOT at Scale	"EQ"	0
+-200V  Cal DPOT at Scale	"EQ"	0
++400V  Cal DPOT at Scale	"EQ"	0
+-400V  Cal DPOT at Scale	"EQ"	0
+
+
+End Limits

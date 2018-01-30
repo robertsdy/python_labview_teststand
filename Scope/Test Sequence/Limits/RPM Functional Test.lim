@@ -1,0 +1,7 @@
+RPM Functional Test
+<Step Name>	Comp	Limits.High	Limits.Low
+(11.1) RPM Test at Pin 4	"GELE"	2450	2350
+(11.2) RPM Test at pin 7	"GELE"	2450	2350
+
+
+End Limits

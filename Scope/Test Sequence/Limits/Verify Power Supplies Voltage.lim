@@ -1,0 +1,14 @@
+Verify Power Supplies Voltage
+<Step Name>	Comp	Limits.High	Limits.Low
+(0.0) +3.3V Voltage Test	"GELE"	3.4	3.2
+(0.1) +5.2V Voltage Test	"GELE"	5.4	5
+(0.2) +5.2VA Voltage Test	"GELE"	5.4	5
+(0.3) -5.2VA Voltage Test	"GELE"	-5.044	-5.356
+(0.4) +1.6V Voltage Test	"GELE"	1.65	1.55
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

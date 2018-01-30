@@ -1,0 +1,27 @@
+DC Volts Verification
+<Step Name>	Comp	Limits.High	Limits.Low
+(5.0) Verify 0.5V Cal for Ch1	"GELE"	0.506	0.49
+(5.1) Verify 0.5V Cal for Ch2	"GELE"	0.506	0.49
+(5.2) Verify +1.0V Cal for Ch1	"GELE"	1.012	0.998
+(5.3) Verify +1.0V Cal for Ch2	"GELE"	1.012	0.998
+(5.4) Verify +2.5V Cal for Ch1	"GELE"	2.53	2.47
+(5.5) Verify +2.5V Cal for Ch2	"GELE"	2.53	2.47
+(5.6) Verify +5.0V Cal for Ch1	"GELE"	5.06	4.94
+(5.7) Verify +5.0V Cal for Ch2	"GELE"	5.06	4.94
+(5.8) Verify +10V Cal for Ch1	"GELE"	10.12	9.88
+(5.9) Verify +10V Cal for Ch2	"GELE"	10.12	9.88
+(5.10) Verify +25V Cal for Ch1	"GELE"	25.3	24.7
+(5.11) Verify +25V Cal for Ch2	"GELE"	25.3	24.7
+(5.12) Verify +50V Cal for Ch1	"GELE"	50.6	49.4
+(5.13) Verify +50V Cal for Ch2	"GELE"	50.6	49.4
+(5.14) Verify +100V Cal for Ch1	"GELE"	101.2	98.8
+(5.15) Verify +100V Cal for Ch2	"GELE"	101.2	98.8
+(5.16) Verify +200V Cal for Ch1	"GELE"	202.4	197.6
+(5.17) Verify +200V Cal for Ch2	"GELE"	202.4	197.6
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

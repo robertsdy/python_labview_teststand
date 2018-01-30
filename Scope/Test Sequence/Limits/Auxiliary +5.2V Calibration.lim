@@ -1,0 +1,9 @@
+Auxiliary +5.2V Calibration
+<Step Name>	Comp	Limits.Low
+(9.0) Cal Aux Power Supply 0V	"EQ"	0
+(9.1) Cal Aux Power Supply 5V	"EQ"	0
+
+<Locals>	Variable Value
+LossCompisation	0.06
+
+End Limits

@@ -1,0 +1,990 @@
+; This tests the over current functions on both ASIC's
+;---------------------------- ASIC MUXA MUXB MUXC MuxD over current Tests -----------------------------
+
+;------------- SET UP ------------
+SetG15PullUpVbat "0" "0"	; set to 5 v pullup MUX A and B
+SetG15PullUp "A"	"0"
+SetG15PullUp "B"	"0"
+SetG15PullDown "A"	"0"
+SetG15Pulldown "B"	"0"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+SetG15PullUpVbat "1" "0"	; set to 5 v pullup MUX C and D
+SetG15PullUp "C"	"0"
+SetG15PullUp "D"	"0"
+SetG15PullDown "C"	"0"
+SetG15Pulldown "D"	"0"
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+
+ResetAsicRegister "1" "ALL"
+ResetAsicRegister "2" "ALL"
+
+SetFpgaregister "8AD" "1" ; turn on vfet
+
+; +++++++++++++  Over Current register values used  +++++++++++++++++++++++
+; 
+;				bit7	bit6	bit5	bit4	bit3	bit2	bit1	bit0
+; Register 8 	x		x		x		pin15	pin14	pin13	pin12	pin11
+; Register 9 	pin10	pin9	pin8	pin7	pin6	pin3	pin2	pin1
+;
+; new command description ---> ResetAsicRegister  ““ALL” “FLT+STATUS” or “FLT+CONFIG”
+;
+; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;TestLabel "Cable ID"		;------------------Tested in Pin Driver script in Manufacturing SSP Tester
+;CheckFpgaRegister "87A" "0" "0" ;Check Cable_ID 0 is low
+;CheckFpgaRegister "87A" "1" "1" ;Check Cable_ID 1 is high
+
+; =========== NO TRIP TESTS AT 120 mA ==========================================
+; Apply 120 mA (PS 15V) constant current source to J5000.1,2,3,6,7,8,9,10,11,12,13,14,15. It should NOT trip the MUX over current detector.
+			;UserPrompt "Set VBAT/VPROG switch to VPROG, SHORT/AMP switch to AMP, SINK/SOURCE switch to SOURCE and HIGH/LOW switch TO LOW"
+
+SelectMuxA 	"1" "1" "1"		; turn on mux pin to measure open circuit voltage on capacitor
+SelectMuxA 	"2" "1" "1"		; turn on mux pin to measure open circuit voltage on capacitor
+CheckCFAdc	"PD1" "14" "15.5"	; CHECK VOLTAGE IS HIGH - capacitor is charged
+CheckCFAdc	"PD3" "14" "15.5"	; CHECK VOLTAGE IS HIGH - capacitor is charged
+SetG15PullDown 	"A" "5"			; apply LOAD FOR THE TEST using OCD #1
+SetG15PullDown 	"C" "5"			; apply LOAD FOR THE TEST using OCD #1
+
+
+
+TestLabel "----------ASIC 1 No Trip at 120 mA----------"
+;------------ ASIC 1 PIN 1  -------------
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "1" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; no bit should be set at this current level
+ResetAsicRegister "1" "ALL"		; RESET in case it tripped
+;------------ end PIN 1  ---------
+
+;------------ ASIC 1 PIN 2  -------------
+pause "10"				; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "2" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1"  "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 2  ---------
+
+;------------ ASIC 1 PIN 3  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "3" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	;
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 3  ---------
+
+;------------ ASIC 1 PIN 6  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "6" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+								; clear the Latch via hardware pin
+;------------ end PIN 6  ---------
+
+;------------ ASIC 1 PIN 7  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "7" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 7  ---------
+
+;------------ ASIC 1 PIN 8  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "8" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"			; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 8  ---------
+
+;------------ ASIC 1 PIN 9  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "9" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 9  ---------
+
+;------------ ASIC 1 PIN 10  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "10" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 10  ---------
+
+;------------ ASIC 1 PIN 11  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "11" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 11  ---------
+
+;------------ ASIC 1 PIN 12  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "12" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 12  ---------
+
+;------------ ASIC 1 PIN 13  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "13" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 13  ---------
+
+;------------ ASIC 1 PIN 14  -------------
+pause "50"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "14" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"			; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 14  ---------
+
+;------------ ASIC 1 PIN 15  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "15" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"			; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 15  ---------
+
+
+;ASIC 2 NO TRIP TESTS AT 120 mA-------------------------------------------------------------------------
+
+TestLabel "----------ASIC 2 No Trip at 120 mA-----------"
+;------------ ASIC 2 PIN 1  -------------
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "1" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; no bit should be set at this current level
+ResetAsicRegister "2" "ALL"			; RESET in case it tripped
+;------------ end PIN 1  ---------
+
+;------------ ASIC 2 PIN 2  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "2" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2"  "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 2  ---------
+
+;------------ ASIC 2 PIN 3  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "3" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	;
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"			; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 3  ---------
+
+;------------ ASIC 2 PIN 6  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "6" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 6  ---------
+
+;------------ ASIC 2 PIN 7  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "7" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 7  ---------
+
+;------------ ASIC 2 PIN 8  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "8" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 8  ---------
+
+;------------ ASIC 2 PIN 9  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "9" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 9  ---------
+
+;------------ ASIC 2 PIN 10  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "10" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 10  ---------
+
+;------------ ASIC 2 PIN 11  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "11" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 11  ---------
+
+;------------ ASIC 2 PIN 12  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "12" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 12  ---------
+
+;------------ ASIC 2 PIN 13  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "13" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 13  ---------
+
+;------------ ASIC 2 PIN 14  -------------
+pause "50"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "14" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 14  ---------
+
+;------------ ASIC 2 PIN 15  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "15" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"		; temporary, for poc2. for gep2015, only reset the Status, FPGA should
+									; clear the Latch via hardware pin
+;------------ end PIN 15  ---------
+
+
+;============================================================================
+; =========== TRIP TESTS AT 250 mA ==========================================
+;============================================================================
+
+				;UserPrompt "Set High/Low to HIGH"
+
+; Apply 250 mA (PS 15V) constant current source to J5000.1,2,3,6,7,8,9,10,11,12,13,14,15. It should trip the MUX over current detector.
+
+; Note: pin 1 and 2 are tested different than the other pins.
+; Instead of using the ASIC register to clear the faults,
+; The FPGA to ASIC fltreset pins are used
+; Since the status bits don't get cleared, the pin 2 test includes bits for pin 1 and 2
+
+TestLabel "----------ASIC 1 Trip Test at 250 mA-----------"
+;------------ ASIC 1 PIN 1  -------------
+SetFpgaregister "983" "01"			; Set bit 0 in FPGA register to decrease the reset time from 6 to .5 sec
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "1" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "01"	; only bit for this pin should be set
+pause "600"							; 600 ms delay
+SetFpgaregister "8AF" "03"			; Toggling the fault reset pin on the ASIC FPGA register 8AF bit 1,
+SetFpgaregister "8AF" "01"			; this allows the ASIC to function, but
+SetFpgaregister "8AF" "03"			; it does it does not reset the fault bits in the regiters. Bit 0 stays high
+;NOTE: SHOULD ONLY HAVE TO TEST THE FPGA RESET PIN ONCE THEN THE REST OF THE PINS CAN USE SOFTWARE RESET .5 SECOND DELAY CAN BE REMOVED FOR THE OTHER PINS
+;------------ end PIN 1  ---------
+
+;------------ ASIC 1 PIN 2  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "01"	; Faults for pin 1 still should be set
+SelectMuxA 		"1" "2" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "03"	; bits for pin 1 and 2 should be set
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 2  ---------
+
+;------------ ASIC 1 PIN 3  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "3" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	;
+CheckAsicRegister1  "9" "ff" "04"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 3  ---------
+
+;------------ ASIC 1 PIN 6  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "6" "1"			; turn on mux pin to apply fault
+;pause "10"
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "08"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 6  ---------
+
+;------------ ASIC 1 PIN 7  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "7" "1"			; turn on mux pin to apply fault
+;pause "10"
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "10"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 7  ---------
+
+;------------ ASIC 1 PIN 8  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "8" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; 
+CheckAsicRegister1  "9" "ff" "20"	; only bit for this pin should be set
+ResetAsicRegister "1"  "ALL"		; clear fault and status bits
+;------------ end PIN 8  ---------
+ 
+;------------ ASIC 1 PIN 9  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "9" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "40"	; 
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 9  ---------
+
+;------------ ASIC 1 PIN 10  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "10" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "80"	; 
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 10  ---------
+
+;------------ ASIC 1 PIN 11  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "11" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "01"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 11  ---------
+
+;------------ ASIC 1 PIN 12  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "12" "1"		; turn on mux pin to apply fault
+;pause "10"
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "02"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 12  ---------
+
+;------------ ASIC 1 PIN 13  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "13" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "04"	; only bit for this pin should be set
+CheckAsicRegister1  "9" "ff" "00"	; 
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 13  ---------
+
+;------------ ASIC 1 PIN 14  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "14" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "08"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1"  "ALL"		; clear fault and status bits
+;------------ end PIN 14  ---------
+
+;------------ ASIC 1 PIN 15  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister1  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister1  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"1" "15" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"1" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister1  "8" "ff" "10"	; 
+CheckAsicRegister1  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "1" "ALL"			; clear fault and status bits
+;------------ end PIN 15  ---------
+
+
+;--------------------------------ASIC 2 TRIP TESTS AT 250 mA-------------------------------------------------------
+TestLabel "----------ASIC 2 Trip Test at 250 mA----------"
+
+;------------ ASIC 2 PIN 1  -------------
+SetFpgaregister "983" "01"		; Set bit 0 in FPGA register to decrease the reset time from 6 to .5 sec
+pause "10"				; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "1" "1"	; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"			; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "01"	; only bit for this pin should be set
+pause "600"				; 600 ms delay
+SetFpgaregister "8AF" "03"			; Toggling the fault reset pin on the ASIC FPGA register 8AF bit 1,
+SetFpgaregister "8AF" "01"			; this allows the ASIC to function, but
+SetFpgaregister "8AF" "03"			; it does it does not reset the fault bits in the regiters. Bit 0 stays high.
+;NOTE: SHOULD ONLY HAVE TO TEST THE FPGA RESET PIN ONCE THEN THE REST OF THE PINS CAN USE SOFTWARE RESET .5 SECOND DELAY CAN BE REMOVED FOR THE OTHER PINS
+SetFpgaregister "983" "00"			;back to normal time delay
+;------------ end PIN 1  ---------
+;------------ ASIC 2 PIN 2  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "01"	; Faults for pin 1 still should be set
+SelectMuxA 		"2" "2" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "03"	; bits for pin 1 and 2 should be set
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 2  ---------
+
+;------------ ASIC 2 PIN 3  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "3" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	;
+CheckAsicRegister2  "9" "ff" "04"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 3  ---------
+
+;------------ ASIC 2 PIN 6  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "6" "1"			; turn on mux pin to apply fault
+;pause "10"
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "08"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 6  ---------
+
+;------------ ASIC 2 PIN 7  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "7" "1"			; turn on mux pin to apply fault
+;pause "10"
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "10"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 7  ---------
+
+;------------ ASIC 2 PIN 8  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "8" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; 
+CheckAsicRegister2  "9" "ff" "20"	; only bit for this pin should be set
+ResetAsicRegister "2"  "ALL"		; clear fault and status bits
+;------------ end PIN 8  ---------
+ 
+;------------ ASIC 2 PIN 9  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "9" "1"			; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "40"	; 
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 9  ---------
+
+;------------ ASIC 2 PIN 10  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "10" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "00"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "80"	; 
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 10  ---------
+
+;------------ ASIC 2 PIN 11  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "11" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "01"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 11  ---------
+
+;------------ ASIC 2 PIN 12  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "12" "1"		; turn on mux pin to apply fault
+;pause "10"
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "02"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 12  ---------
+
+;------------ ASIC 2 PIN 13  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "13" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "04"	; only bit for this pin should be set
+CheckAsicRegister2  "9" "ff" "00"	; 
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 13  ---------
+
+;------------ ASIC 2 PIN 14  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "14" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "08"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2"  "ALL"		; clear fault and status bits
+;------------ end PIN 14  ---------
+
+;------------ ASIC 2 PIN 15  -------------
+pause "10"							; charge capacitor
+CheckAsicRegister2  "8" "ff" "00"	; No faults should be set yet
+CheckAsicRegister2  "9" "ff" "00"	; No faults should be set yet
+SelectMuxA 		"2" "15" "1"		; turn on mux pin to apply fault
+SelectAllMuxA 	"2" "0"				; turn off all mux pins to remove fault
+CheckAsicRegister2  "8" "ff" "10"	; 
+CheckAsicRegister2  "9" "ff" "00"	; only bit for this pin should be set
+ResetAsicRegister "2" "ALL"			; clear fault and status bits
+;------------ end PIN 15  ---------
+
+; clean up
+SetG15PullUpVbat "1" "0"	; set to 5 v pullup
+SetG15PullUp "C"	"0"
+SetG15PullUp "D"	"0"
+SetG15PullDown "C"	"0"
+SetG15Pulldown "D"	"0"
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+
+;Remove the 250ma constant current source from J5000.1,2,3,6,7,8,9,10,11,12,13,14,15.
+
+
+; ===================================================================================================
+; ----------------------- HIGH OVER CURRENT TEST FOR PIN 9 AND 15 OC DRIVERS -----------------------
+; ===================================================================================================
+
+	;----------------- PART 1; OVER CURRRENT TEST1 2ms MODE Description ----------------
+	; SET TESTER TO 2.5 AMPS
+	; SET THRESHOLD TO XX VOLTS
+	; TURN ON OC DRIVERS ONE AT TIME AND CHECK
+	; THAT THE OVER CURRENT FLAGS GET SET. Register 0x850 Bit 1
+	; GEP2015 ONLY 9, AND 15 GET THE OVERCURRENT OCD TESTS AND USE FPGA REGISTER CONTROL
+	;-----------------------------------------------------------------------------------
+
+				;UserPrompt "Set VBAT/VPROG to VBAT, High/Low Switch to HIGH, AMPS/Short to AMPS, Sink/Source to Source."
+; Connect the 2.5 A Constant current source to J5000.9 and J5000.15.		
+	
+	SetReference 	"88"			; set the comparator threshold to 3.57v dec 88 hex 58
+	;SetFpgaRegister "851" "80"		; Turns On VFET Supply
+	SelectAllMuxA "1" "0"
+	SelectAllMuxB "1" "0"
+	SelectAllMuxA "2" "0"
+	SelectAllMuxB "2" "0"
+
+	;------------ ASIC 1 PIN 9  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "01" 			; THIS Register controls OC on Pin 9
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"1" "1"		; check bit 1 for over current status
+	SetFpgaregister "89F" "00" 			; Turn off OC
+
+	;------------ ASIC 1 PIN 15  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "04" 			; THIS Register controls OCD on Pin 15
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"1" "1"		; check bit 1 for over current status
+	SetFpgaregister "89F" "00" 			; Turn off OC	
+;TestLabel "Cooling Down...please be patient..."
+;pause "16000"
+	
+	;------------ PART 1b; OVER VOLTAGE TEST2 microsecond MODE Description -------------
+	; SET TESTER TO 2.5 AMPS
+	; SET THRESHOLD TO low VOLTS
+	; TURN ON OC DRIVERS ONE AT TIME AND CHECK
+	; THAT OVER VOLTAGE FLAG GETS SET. Register 0x850 Bit 0
+	;-----------------------------------------------------------------------------------
+
+	SetReference 	"03"				; Set the comparator threshold low so if will indicate
+							; that voltage didn't go low enough
+									
+	;------------ ASIC 1 PIN 9  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"0" "0"		; check bit 0 for over voltage status
+	SetFpgaregister "89F" "01" 			; THIS Register controls OC on Pin 9
+	pause "50"							; TURN ON
+	CheckFpgaRegister "850"	"0" "1"		; check bit 0 for over volatge status
+	SetFpgaregister "89F" "00" 			; Turn off OC
+
+	;------------ ASIC 1 PIN 15  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"0" "0"		; check bit 0 for over volatge status
+	SetFpgaregister "89F" "04" 			; THIS Register controls OCD on Pin 15
+	pause "50"							; TURN ON
+	CheckFpgaRegister "850"	"0" "1"		; check bit 0 for over voltage status
+	SetFpgaregister "89F" "00" 			; Turn off OC
+
+;TestLabel "Cooling Down...please be patient..."
+;pause "16000"
+	
+	;  PART 2 NO TRIP 
+;SSP Note: This was the test that was skipped for SM4. Tester tried to use the user power supply as the 1.7A constant current source.
+	;------------ OVER CURRRENT TEST 1 NO TRIP ------------------------------------------
+	; SET TESTER TO 1.7 AMPS
+	; SET THRESHOLD TO NORMAL VOLTS
+	; TURN ON OC DRIVERS ONE AT TIME AND CHECK
+	; THAT THE OVER CURRENT AND OVER VOLTAGE FLAGS DO NOT GET SET
+	; CHECK THAT VOLTAGE IS BEING PULLED LOW.
+	: THE CURRENT LIMITER CAN'T HANDLE BEING TURNED ON LONG ENOUGH TO TEST THE PTC'S
+	; Register 0x850 Bit 1
+	;-----------------------------------------------------------------------------------
+
+	;------------- SET UP ------------
+	SetReference "88"				; set the comparator threshold back to 3.57v
+	SelectAllMuxA "1" "0"				; ASIC MUXes only used for A/D routing
+	SelectAllMuxB "1" "0"
+	SelectAllMuxA "2" "0"
+	SelectAllMuxB "2" "0"
+
+					;UserPrompt "Set High/Low switch to LOW"
+;Connect J5000.9 and J5000.15 to a 1.7A constant current source.
+
+	;------------ ASIC 1 PIN 9  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "01" 			; THIS Register controls OC on Pin 9
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+
+	SelectMuxA "1" "9" "1"				; MUX to A/D for reading
+	CheckCFAdc "PD1" "-.15" ".4"
+	SelectMuxA "1" "9" "0"				; mux off
+	SetFpgaregister "89F" "00" 			; Turn off OC	
+
+	;------------ ASIC 1 PIN 15  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "04" 			; THIS Register controls OCD on Pin 15
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"1" "0"		; check bit 1 for over current status
+	SelectMuxA "1" "15" "1"				; MUX to A/D for reading
+	CheckCFAdc "PD1" "-.15" "0.4"
+	SelectMuxA "1" "15" "0"				; mux off
+	SetFpgaregister "89F" "00" 			; Turn off OC	
+
+	SelectAllMuxA "1" "0"
+	SelectAllMuxB "1" "0"
+	SelectAllMuxA "2" "0"
+	SelectAllMuxB "2" "0"
+	;-------------------------------- END PART 2 ------------------------------
+;Remove the constant current source from J5000.9 and J5000.15
+	
+; PART 3
+; SSP Note: This was the test that was skipped for SM4. The fixture design did not allow for this test scenario
+	;------------ OVER CURRRENT DEAD SHORT TO VBAT Description ----------------
+	; SET TESTER TO LAMP AND SHORT AND SINK
+	; SET THRESHOLD TO NORMAL VOLTS
+	; TURN ON OC DRIVERS ONE AT TIME AND CHECK
+	; THAT THE OVER CURRENT FLAGS GET SET. Register 0x850 Bit 0
+	;------------------------------------------------------------------------------
+					;UserPrompt "Set High/low switch to HIGH,    SHORT/AMP switch to SHORT  "
+; Connect J5000.9 and J5000.15 to VBAT. 
+
+	SetReference 	"88"				; set the comparator threshold
+
+	;------------ ASIC 1 PIN 9  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"0" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "01" 			; THIS Register controls OC on Pin 9
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"0" "1"		; check bit 1 for over current status
+	SetFpgaregister "89F" "00" 			; Turn off OC
+
+	;------------ ASIC 1 PIN 15  -------------
+	ReadFpgaRegister "850"				; dummy read to clear out if already set
+	CheckFpgaRegister "850"	"0" "0"		; check bit 1 for over current status
+	SetFpgaregister "89F" "04" 			; THIS Register controls OCD on Pin 15
+	pause "10"							; TURN ON
+	CheckFpgaRegister "850"	"0" "1"		; check bit 1 for over current status
+	SetFpgaregister "89F" "00" 			; Turn off OC
+
+; Disconnect J5000.9 and J5000.15 to VBAT. 
+;TestLabel "Cooling Down...please be patient..."
+;pause "16000"	
+; ===================================================================================================
+; ----- END OF HIGH OVER CURRENT TEST ------------
+; ===================================================================================================
+
+
+; ---------------- TEST SCRIPT FOR J1850 HIGH SIDE DRIVER OVER CURRENT PROTECTION ------------
+; Description of test. No stimulus required:
+; Set VCOMM to 5 volts 
+; Turn on J1850 hisgh side driver and monitor voltage by turning on MUX2A pin 3.
+; volts should be 5v. 
+; Then turn on open collector driver for  muxa delay, then turn back off
+; volts should be 0 since an over current should have disabled the J1850 HS driver
+; clear the fault
+; volts should be 5
+
+SetG15PullUpVbat "0" "0"			; set to 5 v pullup
+SetG15PullUp "A"	"0"
+SetG15PullUp "B"	"0"
+SetG15PullDown "A"	"0"
+SetG15Pulldown "B"	"0"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+ResetAsicRegister "1" "ALL"
+ResetAsicRegister "2" "ALL"
+
+SetFpgaregister "983" "04"			; J1850_tx goes lo "ON"
+SetFpgaregister "89E" "40"			; SET VCOMM TO 5 VOLTS
+SetAsicRegister "1" "0" "80"			; Set MUX 2A ON
+CheckCFAdc	"PD1" "5.0" "5.6"		; CHECK VOLTAGE IS HIGH - NO LOAD
+
+SetG15PullDown "A" "5"				;Turn on open collector driver
+Pause "10"
+SetG15PullDown "A" "0"				;Turn off open collector driver
+CheckCFAdc	"PD1" "-.15" "0.3"		; CHECK VOLTAGE IS OFF DUE TO OVERLOAD
+CheckAsicRegister1  "8" "ff" "00"		; NO FAULTS EXPECTED in the fault status register
+CheckAsicRegister1  "9" "ff" "00"		; as  described in the ASIC document  diff xcver section
+ResetAsicRegister "1" "FLT+STATUS"		; CLEAR THE FAULT
+CheckCFAdc	"PD1" "5.0" "5.5"		; CHECK VOLTAGE IS HIGH - NO LOAD
+
+SetFpgaregister "89E" "00"			;VCOMM_Disable
+SetFpgaregister "983" "00"			;Disable J1850 TX
+; ----------------- END VEHICLE COMM OVER CURRENT TESTS -----------------------
+
+; clean up
+SetG15PullUpVbat "0" "0"			; set to 5 v pullup
+SetG15PullUp "A"	"0"
+SetG15PullUp "B"	"0"
+SetG15PullDown "A"	"0"
+SetG15Pulldown "B"	"0"
+SelectAllMuxA "2" "0"
+SelectAllMuxB "2" "0"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+
+--------Check Open Collector Drivers after fault tests. This must be performed after the over current tests-------
+					;UserPrompt " Set Sink/Soure switch to Source Set Amps/Short to Amps. Move connector to J1 "
+
+SetG15PullUp "A"	"1"
+SetG15PullUp "B"	"1"
+SetG15PullUp "C"	"1"
+SetG15PullUp "D"	"1"
+CheckCFAdc "PD1" "4.5" "5.0"
+CheckCFAdc "PD2" "4.5" "5.0"
+CheckCFAdc "PD3" "4.5" "5.0"
+CheckCFAdc "PD4" "4.5" "5.0"
+SetG15PullDown "A"	"5"
+SetG15PullDown "B"	"5"
+SetG15PullDown "C"	"5"
+SetG15PullDown "D"	"5"
+pause "500"
+CheckCFAdc "PD1" "-.15" ".3"
+CheckCFAdc "PD2" "-.15" ".3"
+CheckCFAdc "PD3" "-.15" ".3"
+CheckCFAdc "PD4" "-.15" ".3"
+SetG15PullDown "A"	"0"
+SetG15PullDown "B"	"0"
+SetG15PullDown "C"	"0"
+SetG15PullDown "D"	"0"
+CheckCFAdc "PD1" "4.5" "5.0"
+CheckCFAdc "PD2" "4.5" "5.0"
+SelectMuxA "1" "9" "1"
+SelectMuxB "1" "15" "1"
+SetFpgaregister "89F" "04" 		; THIS Register controls OCD's. 4 Pin 15
+CheckCFAdc "PD1" "4.5" "5.0"
+CheckCFAdc "PD2" "-.15" ".3"
+SetFpgaregister "89F" "01" 		; THIS Register controls OCD's. 1 Pin 9
+CheckCFAdc "PD2" "4.5" "5.0"
+CheckCFAdc "PD1" "-.15" ".3"
+CheckCFAdc "PD3" "4.5" "5.0"
+CheckCFAdc "PD4" "4.5" "5.0"
+SetFpgaregister "89F" "00" 		; Turn off OCD's for pin 9 and 15
+CheckCFAdc "PD1" "4.5" "5.0"
+CheckCFAdc "PD2" "4.5" "5.0"
+SetG15PullUp "A"	"0"
+SetG15PullUp "B"	"0"
+SetG15PullUp "C"	"0"
+SetG15PullUp "D"	"0"
+SelectAllMuxA "1" "0"
+SelectAllMuxB "1" "0"
+
+; ----------------- ADC Battery Check -----------------------
+CheckCFAdc "PVA_Volts" "7.6" "8.4"	;Measure Internal Battery at ADC
+
+; ----------------- VFET Check -----------------------
+SelectMuxA "1" "1" "1"
+CheckFpgaRegister "8ae"	"0" "1"		; VFET PWM is running
+SetFpgaregister "8ad" "00" 		; Turns off VFET supply
+CheckFpgaRegister "8ae"	"0" "0"		; VFET PWM is not running
+SetFpgaregister "8ad" "01" 		; THIS Register Turns on the VFET supply
+SelectMuxA "1" "1" "0"
+
+EndScript
+_________________________________________________________________________________________
+; REVISION HISTORY
+; rev 2 Added a forced ASIC fault reset due to new FPGA version 2.7. Lines 391, 392, 393 for ASIC 1 and 546,547,548 for ASIC 2.
+; rev 1 Changed name to G16_OC_TS_v1.txt from 03_G16_OV_v4.txt. Use script as Test specification.
+; rev 4 Updated limits based on a statistical analysis of EP2 test data.
+; rev 3 Removed 16 second delays for OCD cool down for EP2, Added VFET shutdown check and int battery test.
+; rev 2 Added 16 sec delays.
+; rev 1 Renamed file 03_G16_OC_v1.txt - Removed PVA Tests.
+; rev 18 Increased the delay for the over voltage tests lines 749-763 to 50ms. Corrected description to over voltage.
+; rev 17 Corrected paramter specified on lines 901, 902 to clear ASCI 2 MUX and 1074 and 1075 to clear ASIC 1 MUX.
+; rev 16 Changed limit for programmable power supply PVA ADC reading.
+; rev 15 Changed limits for OC driver lines 797 and 808. Test spec was also changed.
+; rev 14 Cleared register 89E and 983. Lines 891 and 892. Matched Test Spec rev1.3.
+; rev 13 Increased highside tolernece to .45 for Open collectors "turned on" and added .5s delay.
+; rev 12 Increased highside tolernece for Open collectors "turned on" for EP3. Increase Vcom 5v hi to 5.3 form 5.25.
+; rev 10 Added Open Collector Driver Tests after falut tests. 
+; rev 9 Changed file name to S4_OC. Combined ASIC 1 and 2 over current tests.Added PVA Test done on Test 3 connector. Deleted the enabling of the 6 second delay (reg 983 write 0 to eneble the 6s) for the over current test to test ASIC 2. The normal 6 send delay is enabled after testing pin 2 of ASIC 2.
+; rev 8 Jan 12 2015 added high overcurrent test for pins 9 and 15
+; rev 7 nov 19 2014 added open circuit voltage check for current source capacitor in test box
+; rev 6 oct 31 2014 updated all select mux commandes for dual asic format
+; REV 5 Oct 30 2014 added J1850 high side ocp test
+; rev 4 Oct 20 2014 Updated for dual asic hardware and software testing
+; rev 3 Oct 8 2014 Changed ResetAsicRegister "All"	to ResetAsicRegister "ALL"	for new version of SDP
+					AND added reminder prompt for modified test box
+; rev 2 Oct 8 2014 got mux over current test working
+; rev 1 FOR POC2 with ceramic ASIC on external debug board"

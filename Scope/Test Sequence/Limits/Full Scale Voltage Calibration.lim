@@ -1,0 +1,18 @@
+Full Scale Voltage Calibration
+<Step Name>	Comp	Limits.Low
+(3.0) Calibrate 1 Volt	"EQ"	0
+(3.1) Calibrate 2 Volts	"EQ"	0
+(3.2) Calibrate 5 Volts	"EQ"	0
+(3.3) Calibrate 10 Volts	"EQ"	0
+(3.4) Calibrate 20 Volts	"EQ"	0
+(3.5) Calibrate 50 Volts	"EQ"	0
+(3.6) Calibrate 100 Volts	"EQ"	0
+(3.7) Calibrate 200 Volts	"EQ"	0
+(3.8) Calibrate 400 Volts	"EQ"	0
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

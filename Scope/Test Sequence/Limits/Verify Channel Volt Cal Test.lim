@@ -1,0 +1,48 @@
+Verify Channel Volt Cal Test
+<Step Name>	Comp	Limits.Low	Limits.High
+CalStruct_Read	"EQ"	0	
+Verify 0.5V Cal for Ch1	"GELE"	0.495	0.505
+Verify 0.5V Cal for Ch2	"GELE"	0.495	0.505
+Verify 0.5V Cal for Ch3	"GELE"	0.495	0.505
+Verify 0.5V Cal for Ch4	"GELE"	0.495	0.505
+Verify +1.0V Cal for Ch1	"GELE"	0.99	1.01
+Verify +1.0V Cal for Ch2	"GELE"	0.99	1.01
+Verify +1.0V Cal for Ch3	"GELE"	0.99	1.01
+Verify +1.0V Cal for Ch4	"GELE"	0.99	1.01
+Verify +2.5V Cal for Ch1	"GELE"	2.475	2.525
+Verify +2.5V Cal for Ch2	"GELE"	2.475	2.525
+Verify +2.5V Cal for Ch3	"GELE"	2.475	2.525
+Verify +2.5V Cal for Ch4	"GELE"	2.475	2.525
+Verify +5.0V Cal for Ch1	"GELE"	4.95	5.05
+Verify +5.0V Cal for Ch2	"GELE"	4.95	5.05
+Verify +5.0V Cal for Ch3	"GELE"	4.95	5.05
+Verify +5.0V Cal for Ch4	"GELE"	4.95	5.05
+Verify +10V Cal for Ch1	"GELE"	9.9	10.1
+Verify +10V Cal for Ch2	"GELE"	9.9	10.1
+Verify +10V Cal for Ch3	"GELE"	9.9	10.1
+Verify +10V Cal for Ch4	"GELE"	9.9	10.1
+Cal Peak Channel 2	"EQ"	0	
+Verify +25V Cal for Ch1	"GELE"	24.75	25.25
+Verify +25V Cal for Ch2	"GELE"	24.75	25.25
+Verify +25V Cal for Ch3	"GELE"	24.75	25.25
+Verify +25V Cal for Ch4	"GELE"	24.75	25.25
+Verify +50V Cal for Ch1	"GELE"	49.5	50.5
+Verify +50V Cal for Ch2	"GELE"	49.5	50.5
+Verify +50V Cal for Ch3	"GELE"	49.5	50.5
+Verify +50V Cal for Ch4	"GELE"	49.5	50.5
+Verify +100V Cal for Ch1	"GELE"	99	101
+Verify +100V Cal for Ch2	"GELE"	99	101
+Verify +100V Cal for Ch3	"GELE"	99	101
+Verify +100V Cal for Ch4	"GELE"	99	101
+Verify +200V Cal for Ch1	"GELE"	198	202
+Verify +200V Cal for Ch2	"GELE"	198	202
+Verify +200V Cal for Ch3	"GELE"	198	202
+Verify +200V Cal for Ch4	"GELE"	198	202
+Generate 16ms Pulse and Read Ch1	"GELE"	1	1.5
+Generate 16ms Pulse and Read Ch2	"GELE"	1	1.5
+TestAnalogFrontEnd Ch1	"GT"	-1000000	
+TestAnalogFrontEnd Ch2	"GT"	-1000000	
+TestAnalogFrontEnd Ch3	"GT"	-1000000	
+TestAnalogFrontEnd Ch4	"GT"	-1000000	
+
+End Limits

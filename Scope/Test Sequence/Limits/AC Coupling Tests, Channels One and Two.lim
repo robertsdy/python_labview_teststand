@@ -1,0 +1,11 @@
+AC Coupling Tests, Channels One and Two
+<Step Name>	Comp	Limits.High	Limits.Low
+(6.1) AC Coupling Test on CH1	"GELE"	1.3	1.2
+(6.2) AC Coupling Test on CH2	"GELE"	1.3	1.2
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

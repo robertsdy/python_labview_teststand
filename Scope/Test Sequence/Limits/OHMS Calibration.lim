@@ -1,0 +1,16 @@
+OHMS Calibration
+<Step Name>	Comp	Limits.Low
+(4.0) Calibrate Zero Ohms	"EQ"	0
+(4.1) Calibrate 40 Ohms	"EQ"	0
+(4.2) Calibrate 400 Ohms	"EQ"	0
+(4.3) Calibrate 4k Ohms	"EQ"	0
+(4.4) Calibrate 40k Ohms	"EQ"	0
+(4.5) Calibrate 400k Ohms	"EQ"	0
+(4.6) Calibrate 4M Ohms	"EQ"	0
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Limits

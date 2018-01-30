@@ -1,0 +1,12 @@
+Auxiliary +5.2V Verification
+<Step Name>	Comp	Limits.High	Limits.Low
+(9.3) Read Cal Aux Power Supply 2.5V	"GELE"	2.6	2.4
+(9.4) Read Cal Aux Power Supply 5V	"GELE"	5.3	5.0
+(9.5) Read Cal Aux Power Supply (Fault)	"GELE"	0.7	0
+(9.6) Read Cal Aux Power Supply 5V	"GELE"	5.3	5.0
+
+<Locals>	Variable Value
+LossCompisation	0.03
+
+
+End Limits

@@ -1,0 +1,7 @@
+Silo Mem Test
+<Step Name>	Comp	Limits.High	Limits.Low
+<Step Name>	Comp	Limits.Low
+(1.3) Silo Mem Test	"EQ"	7
+
+
+End Limits

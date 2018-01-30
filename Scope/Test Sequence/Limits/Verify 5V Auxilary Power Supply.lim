@@ -1,0 +1,13 @@
+Verify 5V Auxilary Power Supply
+<Step Name>	Comp	Limits.Low	Limits.High
+Aux Power Supply On	"EQ"	0	
+Verify DB9_1 and GND no load	"GELE"	5.05	5.35
+Verify DB9_1 and GND with load	"GELE"	5.05	5.35
+Verify DB9_1 and GND at fault	"GELE"	-0.3	0.3
+Aux On after shutdown	"EQ"	0	
+Verify Aux On after shutdown	"GELE"	5.05	5.35
+Aux Power Supply Off	"EQ"	0	
+Verify Aux Off after shutdown	"GELE"	-0.1	0.1
+
+
+End Limits

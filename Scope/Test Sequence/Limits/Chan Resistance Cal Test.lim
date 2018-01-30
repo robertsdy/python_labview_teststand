@@ -1,0 +1,11 @@
+Chan Resistance Cal Test
+<Step Name>	Comp	Limits.Low
+Zero Ohms Calibrate	"EQ"	0
+50 Ohms Span Cal Channels	"EQ"	0
+1K Ohms Span Cal Channels	"EQ"	0
+10K Ohms Span Cal Channels	"EQ"	0
+100K Ohms Span Cal Channels	"EQ"	0
+1M Ohms Span Cal Channels	"EQ"	0
+10M Ohms Span Cal Channels	"EQ"	0
+
+End Limits

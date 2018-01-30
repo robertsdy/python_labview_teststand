@@ -1,0 +1,69 @@
+// Initial Test Limits for the Modis Edge Charger Test
+// Wayne Stanley 05/27/2016
+
+
+Begin Check D4 LEDS at 10.1 Volts
+<Step Name>	Comp	Limits.Low
+Green LED on at 10 Volts	"LT"	1
+Red LED off at 10 Volts	"GE"	9
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Check D4 LEDS at 10.1 Volts
+
+
+
+Begin Check D4 LEDS at 12.0 Volts Fault Switch On
+<Step Name>	Comp	Limits.Low
+Green LED on at 12 Volts	"LT"	1
+Red LED on at 12 Volts	"LT"	1
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Check D4 LEDS at 12.0 Volts Fault Switch On
+
+
+
+
+Begin Check Charging at 12V
+<Step Name>	Comp	Limits.High	Limits.Low
+Measure VCELL Voltage with NO Load at 12 Volts	"GELE"	8.75	8.2
+Red LED on Charging at 12 Volts	"LT"		1
+Green LED off Charging at 12 Volts	"GT"		9
+Measure VCELL Voltage with Load Charging at 12 Volts	"GELE"	8.2	7
+Measure Voltage Across Load (for current) Charging at 12 Volts	"GELE"	700	500
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Check Charging at 12V
+
+
+
+Begin Check Charging at 28V
+<Step Name>	Comp	Limits.High	Limits.Low
+Measure VCELL Voltage with NO Load 28V	"GELE"	8.75	8.2
+Red LED on Charging at 28 Volts	"LT"		1
+Green LED off Charging at 28 Volts	"GT"		9
+Measure VCELL Voltage with Load Charging at 28 Volts	"GELE"	8.2	7
+Measure Voltage Across Load (for current) Charging at 28 Volts	"GELE"	700	500
+
+<Locals>	Variable Value
+
+<FileGlobals>	Variable Value
+
+<StationGlobals>	Variable Value
+End Check Charging at 28V
+
+
+
+
+
